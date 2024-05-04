@@ -3,10 +3,15 @@ const port = 3000;
 const app = express();
 const apiRouter = require('./routes');
 const db = require('./config/db');
+const cors = require('cors');
+require('dotenv').config();
 
 // Connect mongoDB
 db.connect();
-app.use(express.json())
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
 
 // Routes init
 app.use('/api', apiRouter);

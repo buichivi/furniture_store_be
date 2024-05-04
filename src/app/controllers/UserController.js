@@ -10,9 +10,6 @@ class UserController {
         } catch (err) {
             next(err);
         }
-        // User.find()
-        //     .then((users) => res.json(users))
-        //     .catch(next);
     }
 
     // [GET] /user/:id
@@ -20,15 +17,9 @@ class UserController {
         res.json(req.params);
     }
 
-    // [POST] /user
-    async createUser(req, res, next) {
-        try {
-            const user = new User(req.body);
-            await user.save();
-            res.json(user);
-        } catch (err) {
-            next(err);
-        }
+    // [POST] /api/user/avatar
+    uploadAvatar(req, res, next) {
+        res.json(req.file);
     }
 }
 

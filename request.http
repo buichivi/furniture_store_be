@@ -1,0 +1,40 @@
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "kendrick@gmail.com",
+    "password": "987654321"
+}
+
+###
+
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+    "email": "user@gmail.com",
+    "password": "123456"
+}
+
+###
+GET http://localhost:3000/api/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMyNTAxMjlmZTA0NzJkMDJiNDE0N2QiLCJpYXQiOjE3MTQ2MzkzMTEsImV4cCI6MTcxNDYzOTMyNn0.pB9fErU8jn7_2ORjAreBeJV8YYIC5sy9PGFz5ueEDdA
+###
+
+GET http://localhost:3000/api/token
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMyNTAxMjlmZTA0NzJkMDJiNDE0N2QiLCJpYXQiOjE3MTQ2MzkyODcsImV4cCI6MTcxNDcyNTY4N30.jGt5McDCeZUaZ96vfoxpKC3Uz7bYUwqNWpxg1lLb9h8"
+}
+
+###
+
+PATCH  http://localhost:3000/api/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMyNTAxMjlmZTA0NzJkMDJiNDE0N2QiLCJpYXQiOjE3MTQ2Mzk1NjksImV4cCI6MTcxNDYzOTU4NH0.k1H0FtzxkwN42TFzbdkxjjAM9IJsglVZnlbEDB8Tz0c
+
+
+###
+
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMzOTI2ZmEwZmFiN2I3NmU2ODhjZjgiLCJpYXQiOjE3MTQ2NTU4OTQsImV4cCI6MTcxNDc0MjI5NH0.tLAmhpgop_GuFgKiAQ0jh3PzKhhvXg3K-Wf2fJxQGtI
