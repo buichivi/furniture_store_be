@@ -1,9 +1,9 @@
-POST http://localhost:3000/api/auth/login
+POST http://localhost:3000/api/auth/admin/login
 Content-Type: application/json
 
 {
-    "email": "kendrick@gmail.com",
-    "password": "987654321"
+    "email": "user@gmail.com",
+    "password": "123456"
 }
 
 ###
@@ -32,6 +32,11 @@ Content-Type: application/json
 
 PATCH  http://localhost:3000/api/auth/logout
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMyNTAxMjlmZTA0NzJkMDJiNDE0N2QiLCJpYXQiOjE3MTQ2Mzk1NjksImV4cCI6MTcxNDYzOTU4NH0.k1H0FtzxkwN42TFzbdkxjjAM9IJsglVZnlbEDB8Tz0c
+
+###
+
+PATCH  http://localhost:3000/api/auth/admin/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjM1ZjczOGQzZTBhOTU4YjQxMWYyZWEiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNzE0ODE3NjgzLCJleHAiOjE3MTQ5MDQwODN9.NK3Zg-QdNGPRMD-auJnjKB5FMpd9lzzgw65u13lulWE
 
 
 ###

@@ -39,6 +39,33 @@ class AuthController {
         }
     }
 
+    // [POST] /api/auth/admin/login
+    async adminLogin(req, res) {
+        const { email, password } = req.body;
+        try {
+            const user = await User.findOne({ email });
+            if (!user) throw new Error('User not found!');
+            if (!user.admin)
+                throw new Error("You don't have permission to access");
+            if (user.validPassword(password)) {
+                const token = jwt.sign(
+                    { userId: user._id, admin: user.admin },
+                    process.env.SECRET_KEY,
+                    { expiresIn: '1d' }
+                );
+                await user.updateOne({ token });
+                user.salt = undefined;
+                user.password = undefined;
+                return res
+                    .status(200)
+                    .json({ message: 'Login successful!', user, token });
+            }
+            throw new Error('Email or password is not correct!');
+        } catch (error) {
+            res.status(403).json({ error: error.message });
+        }
+    }
+
     // [POST] /api/auth/register
     async register(req, res) {
         const { error, value } = registerSchema.validate(req.body);
@@ -84,7 +111,15 @@ class AuthController {
     async logout(req, res) {
         const user = await User.findOne({ _id: req.userId });
         if (!user) return res.sendStatus(401);
-        await user.updateOne({ refreshToken: null });
+        await user.updateOne({ token: null });
+        res.status(200).json({ message: 'Log out successful!' });
+    }
+
+    // [PATCH] /api/auth/admin/logout
+    async adminLogout(req, res) {
+        const user = await User.findOne({ _id: req.userId });
+        if (!user) return res.sendStatus(401);
+        await user.updateOne({ token: null });
         res.status(200).json({ message: 'Log out successful!' });
     }
 
