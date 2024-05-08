@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../app/controllers/AuthController');
 const { verifyToken, verifyTokenAndAmin } = require('../middleware/auth');
+const multer = require('multer');
 const upload = require('../middleware/file');
 
 router.post('/admin/login', authController.adminLogin);

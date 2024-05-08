@@ -10,6 +10,7 @@ require('dotenv').config();
 db.connect();
 
 app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 

@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const User = require('../../models/User');
-const path = require('path');
+const unlinkAsync = require('../../utils/removeImage');
+const getFileUrl = require('../../utils/getFileUrl');
 
 const registerSchema = Joi.object({
     firstName: Joi.string().required(),
@@ -29,6 +30,7 @@ class AuthController {
                 await user.updateOne({ token });
                 user.salt = undefined;
                 user.password = undefined;
+                user.avatar = getFileUrl(req, user.avatar);
                 return res
                     .status(200)
                     .json({ message: 'Login successful!', user, token });
@@ -56,6 +58,7 @@ class AuthController {
                 await user.updateOne({ token });
                 user.salt = undefined;
                 user.password = undefined;
+                user.avatar = getFileUrl(req, user.avatar);
                 return res
                     .status(200)
                     .json({ message: 'Login successful!', user, token });
@@ -70,7 +73,7 @@ class AuthController {
     async register(req, res) {
         const { error, value } = registerSchema.validate(req.body);
         if (error) {
-            console.log(error.details);
+            if (req.file) await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
         const {
@@ -83,10 +86,11 @@ class AuthController {
         } = value;
 
         const existingUser = await User.findOne({ email });
-        if (existingUser)
-            return res
-                .status(400)
-                .json({ error: 'This email is already used' });
+        if (existingUser) {
+            if (req.file) await unlinkAsync(req.file.path);
+            return res.status(400).json({ error: 'This email is existed' });
+        }
+
         const newUser = new User({
             firstName,
             lastName,
@@ -96,9 +100,11 @@ class AuthController {
             dateOfBirth,
         });
         newUser.setPassword(password);
-        if (req.file)
-            newUser.avatar = req.file.path.slice(7).replace(/\\/g, '/');
-        else newUser.avatar = null;
+        if (req.file) {
+            newUser.avatar = req.file.path;
+        } else {
+            newUser.avatar = null;
+        }
         newUser
             .save()
             .then(() =>
@@ -130,6 +136,7 @@ class AuthController {
         user.salt = undefined;
         user.password = undefined;
         user.token = undefined;
+        user.avatar = getFileUrl(req, user.avatar);
         res.status(200).json(user);
     }
 }

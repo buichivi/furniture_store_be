@@ -4,7 +4,7 @@ const crypto = require('crypto');
 
 const User = new Schema(
     {
-        avatar: { type: String },
+        avatar: { type: String, default: '' },
         firstName: { type: String, maxLength: 50 },
         lastName: { type: String, maxLength: 50 },
         email: { type: String, maxLength: 255, required: true, unique: true },
@@ -15,9 +15,7 @@ const User = new Schema(
         salt: { type: String },
         token: { type: String, default: null },
     },
-    {
-        timestamps: true,
-    }
+    { timestamps: true }
 );
 
 User.methods.setPassword = function (password) {

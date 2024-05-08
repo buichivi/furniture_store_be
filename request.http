@@ -2,7 +2,7 @@ POST http://localhost:3000/api/auth/admin/login
 Content-Type: application/json
 
 {
-    "email": "user@gmail.com",
+    "email": "admin@gmail.com",
     "password": "123456"
 }
 
@@ -43,3 +43,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjM1Z
 
 GET http://localhost:3000/api/auth/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjMzOTI2ZmEwZmFiN2I3NmU2ODhjZjgiLCJpYXQiOjE3MTQ2NTU4OTQsImV4cCI6MTcxNDc0MjI5NH0.tLAmhpgop_GuFgKiAQ0jh3PzKhhvXg3K-Wf2fJxQGtI
+
+###
+PATCH http://localhost:3000/api/categories/66390c1a771b3fb4097f53dd
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjM1ZjczOGQzZTBhOTU4YjQxMWYyZWEiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNzE1MDY3MDMyLCJleHAiOjE3MTUxNTM0MzJ9.zddmuOoaL8se7k9AeH_Z1kB74wZjOxIxgjBaDEyvp5Y
+Content-Type: application/json
+
+{
+    "active": true
+}
+
+###
+DELETE http://localhost:3000/api/categories/adwda
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjNhZjExNjUxM2QyMmU1ZjE3MGQwYWQiLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNzE1MTUzOTQ1LCJleHAiOjE3MTUyNDAzNDV9.rgCYh_Cg-sNR93wcvLiAZiEs2spHbkesfRI9n2sf23M
