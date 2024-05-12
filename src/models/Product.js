@@ -29,6 +29,7 @@ const Product = new Schema(
         },
         weight: { type: Number, default: 0 },
         material: { type: String, default: '' },
+        reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }],
         active: { type: Boolean, default: true },
     },
     { timestamps: true }

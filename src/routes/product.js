@@ -4,7 +4,8 @@ const { verifyTokenAndAmin } = require('../middleware/auth');
 const productController = require('../app/controllers/ProductController');
 const upload = require('../middleware/file');
 
-router.get('/:id', productController.getProductById);
+// router.get('/:id', productController.getProductById);
+router.get('/:slug', productController.getProductBySlug);
 router.patch('/:id', productController.toggleActiveProductById);
 router.delete('/:id', productController.deleteProductById);
 router.put('/:id', productController.editProductById);

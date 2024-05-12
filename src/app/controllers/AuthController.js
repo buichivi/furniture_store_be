@@ -30,7 +30,7 @@ class AuthController {
                 await user.updateOne({ token });
                 user.salt = undefined;
                 user.password = undefined;
-                user.avatar = getFileUrl(req, user.avatar);
+                user.avatar = user.avatar ? getFileUrl(req, user.avatar) : '';
                 return res
                     .status(200)
                     .json({ message: 'Login successful!', user, token });
@@ -136,8 +136,8 @@ class AuthController {
         user.salt = undefined;
         user.password = undefined;
         user.token = undefined;
-        user.avatar = getFileUrl(req, user.avatar);
-        res.status(200).json(user);
+        user.avatar = user.avatar ? getFileUrl(req, user.avatar) : '';
+        res.status(200).json({ user });
     }
 }
 

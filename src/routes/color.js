@@ -12,10 +12,10 @@ router.put(
 router.get('/:colorId', colorController.getColorById);
 router.delete('/:productId/:colorId', colorController.deleteColorById);
 router.post(
-    '/:productId',
+    '/:slug',
     verifyTokenAndAmin,
     upload.fields([{ name: 'thumb', maxCount: 1 }, { name: 'images' }]),
-    colorController.createColorByProductId
+    colorController.createColorByProductSlug
 );
 
 module.exports = router;

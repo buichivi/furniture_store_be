@@ -36,7 +36,7 @@ class ColorController {
         });
     }
 
-    // [DELETE] /productId/colorId
+    // [DELETE] /:productId/:colorId
     async deleteColorById(req, res) {
         const productId = req.params.productId;
         const colorId = req.params.colorId;
@@ -68,10 +68,10 @@ class ColorController {
         }
     }
 
-    // [POST] /colors/:productId
-    async createColorByProductId(req, res) {
-        const productId = req.params.productId;
-        const existedProduct = await Product.findById(productId).populate(
+    // [POST] /colors/:slug
+    async createColorByProductSlug(req, res) {
+        const slug = req.params.slug;
+        const existedProduct = await Product.findOne({ slug }).populate(
             'colors'
         );
         if (!existedProduct) {
@@ -106,7 +106,6 @@ class ColorController {
                 name: value.name.toLowerCase(),
                 thumb: req.files.thumb[0].path,
                 images: req.files.images.map((file) => file.path),
-                productId,
             });
             existedProduct.colors = [...existedProduct.colors, newColor._id];
             await existedProduct.save();
@@ -155,6 +154,8 @@ class ColorController {
             if (thumb) await unlinkAsync(existedColor.thumb);
             await existedColor.updateOne(
                 {
+                    name: value.name,
+                    stock: value.stock,
                     thumb: thumb
                         ? formatPath(thumb)
                         : formatPath(existedColor.thumb),
