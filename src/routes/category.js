@@ -14,7 +14,7 @@ router.post(
 router.patch(
     '/:id',
     verifyTokenAndAmin,
-    categoryController.toggleActiveCateById
+    categoryController.changeActiveAndParentIdCateById
 );
 router.put(
     '/:id',

@@ -6,12 +6,14 @@ const unlinkAsync = require('../../utils/removeImage');
 const addCateSchema = Joi.object({
     name: Joi.string().required(),
     description: Joi.string().required(),
+    parentId: Joi.string().allow(''),
     imageUrl: Joi.any(),
 });
 
 const editCateSchema = Joi.object({
     name: Joi.string().allow(''),
     description: Joi.string().allow(''),
+    parentId: Joi.string().allow(''),
     active: Joi.bool().allow(null),
     imageUrl: Joi.any().allow(null),
 });
@@ -20,11 +22,12 @@ class CategoryController {
     // [GET] /categories/
     async getAllCategories(req, res) {
         const categories = await Category.find().exec();
+        const allCategories = categories.map((cate) => ({
+            ...cate._doc,
+            imageUrl: cate.imageUrl ? getFileUrl(req, cate.imageUrl) : '',
+        }));
         return res.status(200).json({
-            categories: categories.map((cate) => ({
-                ...cate._doc,
-                imageUrl: getFileUrl(req, cate.imageUrl),
-            })),
+            categories: allCategories,
         });
     }
 
@@ -35,7 +38,10 @@ class CategoryController {
             await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
-        const newCate = new Category({ ...value, imageUrl: req.file.path });
+        const newCate = new Category({
+            ...value,
+            imageUrl: req.file ? req.file.path : '',
+        });
         try {
             await newCate.save();
             res.status(201).json({
@@ -52,10 +58,15 @@ class CategoryController {
     }
 
     // [PATCH] /categories/:id
-    toggleActiveCateById(req, res) {
+    changeActiveAndParentIdCateById(req, res) {
         const cateId = req.params.id;
-        const active = req.body.active;
-        Category.findOneAndUpdate({ _id: cateId }, { active }, { new: true })
+        const active = req.body?.active;
+        const parentId = req.body?.parentId;
+        Category.findOneAndUpdate(
+            { _id: cateId },
+            { active, parentId },
+            { new: true }
+        )
             .then((cate) =>
                 res.json({
                     message: 'Update category successfully',
@@ -112,7 +123,7 @@ class CategoryController {
         if (!cate) return res.status(404).json({ error: 'Category not found' });
         try {
             await cate.deleteOne();
-            await unlinkAsync(cate.imageUrl);
+            if (cate.imageUrl) await unlinkAsync(cate.imageUrl);
             return res
                 .status(200)
                 .json({ message: 'Delete category successfully' });

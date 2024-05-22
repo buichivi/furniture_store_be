@@ -6,7 +6,7 @@ const ColorSchema = new Schema({
     product: { type: Schema.Types.ObjectId, ref: 'Product', require: true },
     thumb: { type: String, default: '' },
     stock: { type: Number, min: 0, default: 0 },
-    images: { type: Array },
+    images: [{ type: String }],
 });
 
 module.exports = mongoose.model('Color', ColorSchema);

@@ -6,6 +6,7 @@ const Category = new Schema(
         name: { type: String, unique: true },
         description: { type: String, default: '' },
         imageUrl: { type: String, default: '' },
+        parentId: { type: String, default: '' },
         active: { type: Boolean, default: true },
     },
     { timestamps: true }

@@ -53,15 +53,26 @@ class ProductController {
             .populate('colors');
         res.status(200).json({
             products: products.map((product) => {
-                const colors = product.colors.map((color) => ({
-                    ...color._doc,
-                    thumb: getFileUrl(req, color.thumb),
-                    images: color.images.map((image) => getFileUrl(req, image)),
-                }));
+                let isValid = 0;
+                const colors = product.colors.map((color) => {
+                    isValid += color.stock;
+                    return {
+                        ...color._doc,
+                        thumb: getFileUrl(req, color.thumb),
+                        images: color.images.map((image) =>
+                            getFileUrl(req, image)
+                        ),
+                    };
+                });
                 const salePrice = Math.floor(
                     ((100 - product.discount) / 100) * product.price
                 );
-                return { ...product._doc, salePrice, colors };
+                return {
+                    ...product._doc,
+                    salePrice,
+                    colors,
+                    isValid: !!isValid,
+                };
             }),
         });
     }
@@ -137,11 +148,17 @@ class ProductController {
             .populate('tags')
             .populate('colors')
             .then((product) => {
-                const colors = product.colors.map((color) => ({
-                    ...color._doc,
-                    thumb: getFileUrl(req, color.thumb),
-                    images: color.images.map((image) => getFileUrl(req, image)),
-                }));
+                let isValid = 0;
+                const colors = product.colors.map((color) => {
+                    isValid += color.stock;
+                    return {
+                        ...color._doc,
+                        thumb: getFileUrl(req, color.thumb),
+                        images: color.images.map((image) =>
+                            getFileUrl(req, image)
+                        ),
+                    };
+                });
 
                 res.status(200).json({
                     product: {
@@ -150,6 +167,7 @@ class ProductController {
                         salePrice: Math.floor(
                             (product.price * (100 - product.discount)) / 100
                         ),
+                        isValid: !!isValid,
                     },
                 });
             })
