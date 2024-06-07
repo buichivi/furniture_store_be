@@ -1,1 +1,1 @@
-GET http://localhost:3000/api/cart
+GET http://localhost:3000/api/categories/living-room

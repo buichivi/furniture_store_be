@@ -58,6 +58,7 @@ class CategoryController {
     }
 
     // [PATCH] /categories/:id
+    // ! FIX: CHANGE PATH/PUT category from id to category.slug
     changeActiveAndParentIdCateById(req, res) {
         const cateId = req.params.id;
         const active = req.body?.active;
@@ -92,7 +93,7 @@ class CategoryController {
 
         if (req.file) {
             // When update new image we need to delete the old image
-            await unlinkAsync(existedCate.imageUrl);
+            if (existedCate.imageUrl) await unlinkAsync(existedCate.imageUrl);
             imageUrl = req.file.path;
         }
         const newData = { ...value };
@@ -130,6 +131,16 @@ class CategoryController {
         } catch (error) {
             res.status(400).json({ error: error?.message });
         }
+    }
+
+    // [GET] /categories/:slug
+    async getCategoryBySlug(req, res) {
+        const cateSlug = req.params.slug;
+        const cate = await Category.findOne({ slug: cateSlug });
+        if (!cate) {
+            return res.status(404).json({ error: 'Category not found' });
+        }
+        return res.status(200).json({ category: cate });
     }
 }
 

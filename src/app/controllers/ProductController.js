@@ -47,9 +47,9 @@ class ProductController {
     // [GET] /products/
     async getAllProducts(req, res) {
         const products = await Product.find()
-            .populate('brand', 'name')
-            .populate('category', 'name')
-            .populate('tags', 'name')
+            .populate('brand')
+            .populate('category')
+            .populate('tags')
             .populate('colors');
         res.status(200).json({
             products: products.map((product) => {
@@ -69,6 +69,10 @@ class ProductController {
                 );
                 return {
                     ...product._doc,
+                    category: {
+                        ...product.category._doc,
+                        imageUrl: getFileUrl(req, product.category.imageUrl),
+                    },
                     salePrice,
                     colors,
                     isValid: !!isValid,
@@ -119,32 +123,12 @@ class ProductController {
         }
     }
 
-    // // [GET] /products/:id
-    // getProductById(req, res) {
-    //     const id = req.params.id;
-    //     Product.findById(id)
-    //         .populate('brand', 'name')
-    //         .populate('category', 'name')
-    //         .populate('tags')
-    //         .populate('colors')
-    //         .then((product) => {
-    //             const colors = product.colors.map((color) => ({
-    //                 ...color._doc,
-    //                 thumb: getFileUrl(req, color.thumb),
-    //                 images: color.images.map((image) => getFileUrl(req, image)),
-    //             }));
-
-    //             res.status(200).json({ product: { ...product._doc, colors } });
-    //         })
-    //         .catch((error) => res.status(400).json({ error: error?.message }));
-    // }
-
     // [GET] /products/:slug
     getProductBySlug(req, res) {
         const slug = req.params.slug;
         Product.findOne({ slug })
-            .populate('brand', 'name')
-            .populate('category', 'name')
+            .populate('brand')
+            .populate('category')
             .populate('tags')
             .populate('colors')
             .then((product) => {

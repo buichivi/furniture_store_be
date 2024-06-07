@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const slug = require('mongoose-slug-updater');
+mongoose.plugin(slug);
 
 const Category = new Schema(
     {
@@ -8,6 +10,7 @@ const Category = new Schema(
         imageUrl: { type: String, default: '' },
         parentId: { type: String, default: '' },
         active: { type: Boolean, default: true },
+        slug: { type: String, slug: 'name', unique: true },
     },
     { timestamps: true }
 );

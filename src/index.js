@@ -10,12 +10,16 @@ require('dotenv').config();
 // Connect mongoDB
 db.connect();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4000'];
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('public'));
+
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:4000'];
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (allowedOrigins.includes(origin) || !origin) {
+            if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
                 callback(null, true);
             } else {
                 callback(new Error('Not allowed by CORS'));
@@ -24,9 +28,6 @@ app.use(
         credentials: true,
     })
 );
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static('public'));
 
 // Routes init
 app.use('/api', apiRouter);

@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const slug = require('mongoose-slug-updater');
-const Color = require('./Color');
-const Tag = require('./Tag');
 
 mongoose.plugin(slug);
 

@@ -8,7 +8,6 @@ router.post(
     '/',
     verifyTokenAndAmin,
     upload.single('imageUrl'),
-
     categoryController.createCate
 );
 router.patch(
@@ -23,6 +22,7 @@ router.put(
     categoryController.updateCateById
 );
 router.delete('/:id', verifyTokenAndAmin, categoryController.deleteCateById);
+router.get('/:slug', categoryController.getCategoryBySlug);
 router.get('/', categoryController.getAllCategories);
 
 module.exports = router;

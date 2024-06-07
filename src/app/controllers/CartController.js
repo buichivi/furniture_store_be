@@ -20,21 +20,22 @@ const formatCart = async (req) => {
             model: 'Color',
             select: 'name images',
         });
-    let subTotal = 0;
-    let totalProducts = 0;
-    const items = cart.items.map((item) => {
-        const cartItem = item;
-        const productImage = getFileUrl(req, cartItem?.color?.images[0]);
-        const itemPrice =
-            Math.ceil(
-                (item.product.price * (100 - item.product.discount)) / 100
-            ) * item.quantity;
-        subTotal += itemPrice;
-        totalProducts += cartItem?.quantity;
-        return { ...cartItem._doc, productImage, itemPrice };
-    });
 
-    return { ...cart._doc, items, subTotal, totalProducts };
+    if (cart) {
+        let subTotal = 0;
+        const items = cart.items.map((item) => {
+            const cartItem = item;
+            const productImage = getFileUrl(req, cartItem?.color?.images[0]);
+            const itemPrice =
+                Math.ceil(
+                    (item.product.price * (100 - item.product.discount)) / 100
+                ) * item.quantity;
+            subTotal += itemPrice;
+            return { ...cartItem._doc, productImage, itemPrice };
+        });
+        return { ...cart._doc, items, subTotal };
+    }
+    return {};
 };
 
 class CartController {
