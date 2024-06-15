@@ -7,6 +7,7 @@ const brandRouters = require('./brand');
 const tagRouters = require('./tag');
 const colorRouters = require('./color');
 const cartRouters = require('./cart');
+const promoCodeRouters = require('./promocode');
 const express = require('express');
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/brands', brandRouters);
 router.use('/tags', tagRouters);
 router.use('/colors', colorRouters);
 router.use('/cart', cartRouters);
+router.use('/promo-code', promoCodeRouters);
 
 module.exports = router;

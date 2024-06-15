@@ -9,29 +9,42 @@ const cartItemValidate = Joi.object({
 });
 
 const formatCart = async (req) => {
-    const cart = await Cart.findById(req.cart._id)
-        .populate({
-            path: 'items.product',
-            model: 'Product',
-            select: 'name price discount',
-        })
-        .populate({
-            path: 'items.color',
-            model: 'Color',
-            select: 'name images',
-        });
+    const cart = await Cart.findById(req.cart._id).populate({
+        path: 'items',
+        populate: [
+            {
+                path: 'product',
+                populate: {
+                    path: 'category',
+                    model: 'Category',
+                },
+            },
+            {
+                path: 'color',
+                model: 'Color',
+            },
+        ],
+    });
 
     if (cart) {
         let subTotal = 0;
         const items = cart.items.map((item) => {
             const cartItem = item;
+            const salePrice = Math.floor(
+                ((100 - item.product.discount) / 100) * item.product.price
+            );
             const productImage = getFileUrl(req, cartItem?.color?.images[0]);
             const itemPrice =
                 Math.ceil(
                     (item.product.price * (100 - item.product.discount)) / 100
                 ) * item.quantity;
             subTotal += itemPrice;
-            return { ...cartItem._doc, productImage, itemPrice };
+            return {
+                ...cartItem._doc,
+                productImage,
+                itemPrice,
+                product: { ...item.product._doc, salePrice },
+            };
         });
         return { ...cart._doc, items, subTotal };
     }
@@ -117,6 +130,20 @@ class CartController {
             res.status(200).json({
                 message: 'Deleted a cart item',
                 cart: await formatCart(req),
+            });
+        } catch (error) {
+            res.status(400).json({ error: error?.message });
+        }
+    }
+
+    // [DELETE] /cart/clear
+    async clearCart(req, res) {
+        try {
+            const cart = req.cart;
+            cart.items = [];
+            await cart.save();
+            res.status(200).json({
+                message: 'Deleted all cart item',
             });
         } catch (error) {
             res.status(400).json({ error: error?.message });
