@@ -35,7 +35,7 @@ class CategoryController {
     async createCate(req, res) {
         const { error, value } = addCateSchema.validate(req.body);
         if (error) {
-            await unlinkAsync(req.file.path);
+            if (req.file.path) await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
         const newCate = new Category({
@@ -52,13 +52,12 @@ class CategoryController {
                 },
             });
         } catch (error) {
-            await unlinkAsync(req.file.path);
+            if (req.file.path) await unlinkAsync(req.file.path);
             res.status(400).json({ error: error?.message });
         }
     }
 
     // [PATCH] /categories/:id
-    // ! FIX: CHANGE PATH/PUT category from id to category.slug
     changeActiveAndParentIdCateById(req, res) {
         const cateId = req.params.id;
         const active = req.body?.active;
@@ -125,6 +124,11 @@ class CategoryController {
         try {
             await cate.deleteOne();
             if (cate.imageUrl) await unlinkAsync(cate.imageUrl);
+            const cateChilds = await Category.find({ parentId: cate._id });
+            for (var child of cateChilds) {
+                child.parentId = '';
+                await child.save();
+            }
             return res
                 .status(200)
                 .json({ message: 'Delete category successfully' });

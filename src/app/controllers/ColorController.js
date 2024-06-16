@@ -56,9 +56,9 @@ class ColorController {
             existedProduct.colors = existedProduct.colors.filter(
                 (color) => color != colorId
             );
-            await unlinkAsync(existedColor.thumb);
+            if (existedProduct?.thumb) await unlinkAsync(existedColor.thumb);
             for (const image of existedColor.images) {
-                await unlinkAsync(image);
+                if (image) await unlinkAsync(image);
             }
             await existedColor.deleteOne();
             await existedProduct.save();
@@ -149,8 +149,9 @@ class ColorController {
             const clearImageRequest = existedColor.images
                 .map((img) => formatPath(img))
                 .filter((img) => !existedImages.includes(img));
-            for (const img of clearImageRequest) await unlinkAsync(img);
-            console.log(clearImageRequest);
+            for (const img of clearImageRequest) {
+                if (img) await unlinkAsync(img);
+            }
             if (thumb) await unlinkAsync(existedColor.thumb);
             await existedColor.updateOne(
                 {

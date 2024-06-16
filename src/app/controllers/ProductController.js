@@ -218,9 +218,10 @@ class ProductController {
         try {
             const colors = existedProduct.colors;
             for (const color of colors) {
-                console.log(color.thumb, color.images);
-                await unlinkAsync(color.thumb);
-                for (const img of color.images) await unlinkAsync(img);
+                if (color?.thumb) await unlinkAsync(color.thumb);
+                for (const img of color.images) {
+                    if (img) await unlinkAsync(img);
+                }
                 await Color.findByIdAndDelete({ _id: color._id });
             }
             await existedProduct.deleteOne();

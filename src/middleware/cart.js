@@ -1,5 +1,6 @@
 const Cart = require('../models/Cart');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const cartMiddleware = async (req, res, next) => {
     let cart;
