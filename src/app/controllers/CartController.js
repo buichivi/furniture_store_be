@@ -1,55 +1,12 @@
-const Cart = require('../../models/Cart');
 const Joi = require('joi');
-const getFileUrl = require('../../utils/getFileUrl');
+const formatCart = require('../../utils/formatCart');
+const Color = require('../../models/Color');
 
 const cartItemValidate = Joi.object({
     product: Joi.string().required(),
     color: Joi.string().required(),
     quantity: Joi.number().required(),
 });
-
-const formatCart = async (req) => {
-    const cart = await Cart.findById(req.cart._id).populate({
-        path: 'items',
-        populate: [
-            {
-                path: 'product',
-                populate: {
-                    path: 'category',
-                    model: 'Category',
-                },
-            },
-            {
-                path: 'color',
-                model: 'Color',
-            },
-        ],
-    });
-
-    if (cart) {
-        let subTotal = 0;
-        const items = cart.items.map((item) => {
-            const cartItem = item;
-            const salePrice = Math.floor(
-                ((100 - item.product.discount) / 100) * item.product.price
-            );
-            const productImage = getFileUrl(req, cartItem?.color?.images[0]);
-            const itemPrice =
-                Math.ceil(
-                    (item.product.price * (100 - item.product.discount)) / 100
-                ) * item.quantity;
-            subTotal += itemPrice;
-            return {
-                ...cartItem._doc,
-                productImage,
-                itemPrice,
-                product: { ...item.product._doc, salePrice },
-            };
-        });
-        return { ...cart._doc, items, subTotal };
-    }
-    return {};
-};
 
 class CartController {
     // [GET] /cart
@@ -62,12 +19,19 @@ class CartController {
         const { error, value } = cartItemValidate.validate(req.body);
         if (error)
             return res.status(400).json({ error: error.details[0].message });
+
         try {
             const cart = req.cart;
             const isExistedProduct = cart.items.find(
                 (item) => item?.product == value?.product
             );
+            const color = await Color.findById(value.color);
             if (isExistedProduct) {
+                if (color.stock < isExistedProduct.quantity + value.quantity) {
+                    return res.status(400).json({
+                        error: 'The current number of products is not enough',
+                    });
+                }
                 cart.items = cart.items.map((item) => {
                     return item.product == value.product &&
                         item.color == value.color
@@ -78,6 +42,11 @@ class CartController {
                         : item;
                 });
             } else {
+                if (color.stock < value.quantity) {
+                    return res.status(400).json({
+                        error: 'The current number of products is not enough',
+                    });
+                }
                 cart.items.push(value);
             }
             await cart.save();
@@ -99,7 +68,20 @@ class CartController {
                 return res
                     .status(400)
                     .json({ error: error.details[0].message });
-
+            const color = await Color.findById(value.color);
+            const item = cart.items.find((it) => it.product == value.product);
+            if (item) {
+                if (color.stock < value.quantity) {
+                    return res.status(400).json({
+                        error: 'The current number of products is not enough',
+                        cart: await formatCart(req),
+                    });
+                }
+            } else {
+                return res.status(400).json({
+                    error: 'This product is not in your cart',
+                });
+            }
             cart.items = cart.items.map((item) => {
                 return item.product == value.product &&
                     item.color == value.color

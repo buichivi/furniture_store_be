@@ -21,5 +21,6 @@ router.use('/tags', tagRouters);
 router.use('/colors', colorRouters);
 router.use('/cart', cartRouters);
 router.use('/promo-code', promoCodeRouters);
+router.use('/orders', orderRouters);
 
 module.exports = router;

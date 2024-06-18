@@ -30,9 +30,9 @@ const promoCodeSchema = Joi.object({
             'number.base': 'Discount must be a number',
             'any.required': 'Discount is required',
         }),
-    startDate: Joi.date().greater('now').required().messages({
+    startDate: Joi.date().min('now').required().messages({
         'date.base': 'Start date must be a valid date',
-        'date.greater': 'Start date must be in the future',
+        'date.min': 'Start date must be in the future',
         'any.required': 'Start date is required',
     }),
     endDate: Joi.date().greater(Joi.ref('startDate')).required().messages({
@@ -66,6 +66,11 @@ class PromoCodeController {
             return res
                 .status(404)
                 .json({ error: 'This promo code has not been activated' });
+        }
+        if (existed_promoCode.currentUses >= existed_promoCode.maxUsage) {
+            return res
+                .status(404)
+                .json({ error: 'This promo code has reached its usage limit' });
         }
         res.status(200).json({
             message: 'Apply promo code successfully!',
