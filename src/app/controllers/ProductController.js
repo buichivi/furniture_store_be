@@ -143,14 +143,14 @@ class ProductController {
                         ),
                     };
                 });
-
+                const salePrice = Math.floor(
+                    ((100 - product.discount) / 100) * product.price
+                );
                 res.status(200).json({
                     product: {
                         ...product._doc,
                         colors,
-                        salePrice: Math.floor(
-                            (product.price * (100 - product.discount)) / 100
-                        ),
+                        salePrice,
                         isValid: !!isValid,
                     },
                 });
@@ -228,6 +228,53 @@ class ProductController {
             res.status(200).json({ message: 'Delete product successfully' });
         } catch (error) {
             res.status(400).json({ error: error?.message });
+        }
+    }
+
+    // [GET] /products/search/:query
+    async searchProduct(req, res) {
+        const query = req.params.query;
+        try {
+            const searchedProducts = await Product.find({
+                name: { $regex: query, $options: 'i' },
+            })
+                .populate('brand')
+                .populate('category')
+                .populate('tags')
+                .populate('colors');
+            res.status(200).json({
+                products: searchedProducts.map((product) => {
+                    let isValid = 0;
+                    const colors = product.colors.map((color) => {
+                        isValid += color.stock;
+                        return {
+                            ...color._doc,
+                            thumb: getFileUrl(req, color.thumb),
+                            images: color.images.map((image) =>
+                                getFileUrl(req, image)
+                            ),
+                        };
+                    });
+                    const salePrice = Math.floor(
+                        ((100 - product.discount) / 100) * product.price
+                    );
+                    return {
+                        ...product._doc,
+                        category: {
+                            ...product.category._doc,
+                            imageUrl: getFileUrl(
+                                req,
+                                product.category.imageUrl
+                            ),
+                        },
+                        salePrice,
+                        colors,
+                        isValid: !!isValid,
+                    };
+                }),
+            });
+        } catch (err) {
+            res.status(400).json({ error: err?.message });
         }
     }
 }
