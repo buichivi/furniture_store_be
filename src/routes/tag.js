@@ -1,14 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Tag = require('../models/Tag');
+const TagController = require('../app/controllers/TagController');
 
-router.get('/', async (req, res) => {
-    try {
-        const tags = await Tag.find();
-        res.status(200).json({ tags });
-    } catch (error) {
-        res.status(400).json({ error: error?.message });
-    }
-});
+router.get('/', TagController.getAllTags);
+router.post('/', TagController.createTag);
+router.put('/:id', TagController.editTag);
+router.delete('/:id', TagController.deleteTag);
 
 module.exports = router;

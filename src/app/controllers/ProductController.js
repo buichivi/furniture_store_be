@@ -1,6 +1,7 @@
 const Product = require('../../models/Product');
 const Joi = require('joi');
 const Brand = require('../../models/Brand');
+const Tag = require('../../models/Tag');
 const Color = require('../../models/Color');
 const getFileUrl = require('../../utils/getFileUrl');
 const clearImageRequest = require('../../utils/clearImageRequest');
@@ -43,6 +44,31 @@ const editProductSchema = Joi.object({
     tags: Joi.array().min(1).required(),
 });
 
+const formatProduct = (req, product) => {
+    let isValid = 0;
+    const colors = product?.colors?.map((color) => {
+        isValid += color.stock;
+        return {
+            ...color._doc,
+            thumb: getFileUrl(req, color.thumb),
+            images: color.images.map((image) => getFileUrl(req, image)),
+        };
+    });
+    const salePrice = Math.floor(
+        ((100 - product.discount) / 100) * product.price
+    );
+    return {
+        ...product._doc,
+        category: {
+            ...product.category._doc,
+            imageUrl: getFileUrl(req, product.category.imageUrl),
+        },
+        salePrice,
+        colors,
+        isValid: !!isValid,
+    };
+};
+
 class ProductController {
     // [GET] /products/
     async getAllProducts(req, res) {
@@ -53,30 +79,7 @@ class ProductController {
             .populate('colors');
         res.status(200).json({
             products: products.map((product) => {
-                let isValid = 0;
-                const colors = product.colors.map((color) => {
-                    isValid += color.stock;
-                    return {
-                        ...color._doc,
-                        thumb: getFileUrl(req, color.thumb),
-                        images: color.images.map((image) =>
-                            getFileUrl(req, image)
-                        ),
-                    };
-                });
-                const salePrice = Math.floor(
-                    ((100 - product.discount) / 100) * product.price
-                );
-                return {
-                    ...product._doc,
-                    category: {
-                        ...product.category._doc,
-                        imageUrl: getFileUrl(req, product.category.imageUrl),
-                    },
-                    salePrice,
-                    colors,
-                    isValid: !!isValid,
-                };
+                return formatProduct(req, product);
             }),
         });
     }
@@ -136,27 +139,8 @@ class ProductController {
             .populate('tags')
             .populate('colors')
             .then((product) => {
-                let isValid = 0;
-                const colors = product.colors.map((color) => {
-                    isValid += color.stock;
-                    return {
-                        ...color._doc,
-                        thumb: getFileUrl(req, color.thumb),
-                        images: color.images.map((image) =>
-                            getFileUrl(req, image)
-                        ),
-                    };
-                });
-                const salePrice = Math.floor(
-                    ((100 - product.discount) / 100) * product.price
-                );
                 res.status(200).json({
-                    product: {
-                        ...product._doc,
-                        colors,
-                        salePrice,
-                        isValid: !!isValid,
-                    },
+                    product: formatProduct(req, product),
                 });
             })
             .catch((error) => res.status(400).json({ error: error?.message }));
@@ -248,37 +232,54 @@ class ProductController {
                 .populate('colors');
             res.status(200).json({
                 products: searchedProducts.map((product) => {
-                    let isValid = 0;
-                    const colors = product.colors.map((color) => {
-                        isValid += color.stock;
-                        return {
-                            ...color._doc,
-                            thumb: getFileUrl(req, color.thumb),
-                            images: color.images.map((image) =>
-                                getFileUrl(req, image)
-                            ),
-                        };
-                    });
-                    const salePrice = Math.floor(
-                        ((100 - product.discount) / 100) * product.price
-                    );
-                    return {
-                        ...product._doc,
-                        category: {
-                            ...product.category._doc,
-                            imageUrl: getFileUrl(
-                                req,
-                                product.category.imageUrl
-                            ),
-                        },
-                        salePrice,
-                        colors,
-                        isValid: !!isValid,
-                    };
+                    return formatProduct(req, product);
                 }),
             });
         } catch (err) {
             res.status(400).json({ error: err?.message });
+        }
+    }
+    // [GET] /products/tag/:tag
+    async getProductByTag(req, res) {
+        try {
+            const tag = req.params.tag;
+            const existedTag = await Tag.findOne({ name: tag });
+            if (!existedTag) throw new Error('Tag not found');
+            const products = await Product.find({
+                tags: { $in: existedTag._id },
+            })
+                .populate('brand')
+                .populate('category')
+                .populate('tags')
+                .populate('colors');
+            res.status(200).json({
+                products: products.map((product) => {
+                    return formatProduct(req, product);
+                }),
+            });
+        } catch (error) {
+            res.status(400).json({ error: error?.message });
+        }
+    }
+
+    // [GET] /products/brand/:brand
+    async getProductByBrand(req, res) {
+        try {
+            const brand = req.params.brand;
+            const existedBrand = await Brand.findOne({ name: brand });
+            if (!existedBrand) throw new Error('Brand not found');
+            const products = await Product.find({ brand: existedBrand._id })
+                .populate('brand')
+                .populate('category')
+                .populate('tags')
+                .populate('colors');
+            res.status(200).json({
+                products: products.map((product) => {
+                    return formatProduct(req, product);
+                }),
+            });
+        } catch (error) {
+            res.status(400).json({ error: error?.message });
         }
     }
 }
