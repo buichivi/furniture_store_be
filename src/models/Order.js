@@ -20,6 +20,11 @@ const OrderSchema = new Schema(
         },
         paymentStatus: {
             type: String,
+            default: 'cod',
+            enum: ['paid', 'unpaid'],
+        },
+        orderStatus: {
+            type: String,
             default: 'pending',
             enum: [
                 'pending',

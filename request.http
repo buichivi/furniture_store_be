@@ -1,1 +1,5 @@
-GET http://localhost:3000/api/products/search/2
+GET http://localhost:3000/api/wishlist
+
+{
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjczZTM1OGY0NTE0M2ZiNTUwZTYwZGIiLCJpYXQiOjE3MTg4NzA4ODEsImV4cCI6MTcxODk1NzI4MX0.mZOh-M0RjfAtkpBNPqjAV82PmQJ3cmVbALAxf8rWu_o"
+}

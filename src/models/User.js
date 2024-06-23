@@ -14,6 +14,12 @@ const User = new Schema(
         admin: { type: Boolean, default: false },
         salt: { type: String },
         token: { type: String, default: null },
+        wishlist: [
+            {
+                product: { type: Schema.Types.ObjectId },
+                addedAt: { type: String },
+            },
+        ],
     },
     { timestamps: true }
 );

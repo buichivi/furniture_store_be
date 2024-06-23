@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const PromoCode = require('../../models/PromoCode');
+const moment = require('moment');
 
 const promoCodeSchema = Joi.object({
     code: Joi.string().required().messages({
@@ -30,9 +31,8 @@ const promoCodeSchema = Joi.object({
             'number.base': 'Discount must be a number',
             'any.required': 'Discount is required',
         }),
-    startDate: Joi.date().min('now').required().messages({
+    startDate: Joi.date().required().messages({
         'date.base': 'Start date must be a valid date',
-        'date.min': 'Start date must be in the future',
         'any.required': 'Start date is required',
     }),
     endDate: Joi.date().greater(Joi.ref('startDate')).required().messages({
@@ -72,6 +72,16 @@ class PromoCodeController {
                 .status(404)
                 .json({ error: 'This promo code has reached its usage limit' });
         }
+
+        const currentDate = moment(); // Ngày hiện tại
+        const endDate = moment(existed_promoCode.endDate); // Ngày hết hạn của mã khuyến mãi
+
+        if (currentDate.isAfter(endDate, 'day')) {
+            return res
+                .status(400)
+                .json({ error: 'This promo code has expired' });
+        }
+
         res.status(200).json({
             message: 'Apply promo code successfully!',
             promoCode: existed_promoCode,
@@ -85,6 +95,14 @@ class PromoCodeController {
             return res.status(400).json({ error: error?.details[0].message });
         }
         try {
+            const existedPromoCode = await PromoCode.findOne({
+                code: value.code,
+            });
+            if (existedPromoCode) {
+                return res
+                    .status(404)
+                    .json({ error: 'This code has been created' });
+            }
             const newPromoCode = new PromoCode({
                 ...value,
                 code: value.code.toUpperCase(),
@@ -96,8 +114,7 @@ class PromoCodeController {
             });
         } catch (err) {
             res.status(500).json({
-                message: 'Error creating promo code',
-                error,
+                error: err?.message,
             });
         }
     }

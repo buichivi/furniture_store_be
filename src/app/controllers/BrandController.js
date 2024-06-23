@@ -27,6 +27,10 @@ class BrandController {
             return res.status(400).json({ error: error.details[0].message });
         }
         try {
+            const existedBrand = await Brand.findOne({ name: value.name });
+            if (existedBrand) {
+                throw new Error('This brand name is already in use');
+            }
             const newBrand = new Brand(value);
             await newBrand.save();
             res.status(201).json({

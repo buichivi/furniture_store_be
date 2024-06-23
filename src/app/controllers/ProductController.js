@@ -95,6 +95,10 @@ class ProductController {
             return res.status(400).json({ error: error.details[0].message });
         }
         try {
+            const existedProduct = await Product.findOne({ name: value.name });
+            if (existedProduct) {
+                throw new Error('This product name is already in use');
+            }
             const newColor = new Color({
                 name: value.colorName,
                 thumb: value.thumb,

@@ -38,11 +38,17 @@ class CategoryController {
             if (req.file.path) await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
-        const newCate = new Category({
-            ...value,
-            imageUrl: req.file ? req.file.path : '',
-        });
         try {
+            const existedCategory = await Category.findOne({
+                name: value.name,
+            });
+            if (existedCategory) {
+                throw new Error('This category name is already in use');
+            }
+            const newCate = new Category({
+                ...value,
+                imageUrl: req.file ? req.file.path : '',
+            });
             await newCate.save();
             res.status(201).json({
                 message: 'Create a new category successfully',
@@ -52,7 +58,7 @@ class CategoryController {
                 },
             });
         } catch (error) {
-            if (req.file.path) await unlinkAsync(req.file.path);
+            if (req?.file?.path) await unlinkAsync(req.file.path);
             res.status(400).json({ error: error?.message });
         }
     }
@@ -92,7 +98,7 @@ class CategoryController {
 
         if (req.file) {
             // When update new image we need to delete the old image
-            if (existedCate.imageUrl) await unlinkAsync(existedCate.imageUrl);
+            if (existedCate?.imageUrl) await unlinkAsync(existedCate.imageUrl);
             imageUrl = req.file.path;
         }
         const newData = { ...value };
