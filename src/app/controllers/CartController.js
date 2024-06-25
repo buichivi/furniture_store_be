@@ -23,7 +23,9 @@ class CartController {
         try {
             const cart = req.cart;
             const isExistedProduct = cart.items.find(
-                (item) => item?.product == value?.product
+                (item) =>
+                    item?.product == value?.product &&
+                    item?.color == value?.color
             );
             const color = await Color.findById(value.color);
             if (isExistedProduct) {
