@@ -6,6 +6,7 @@ const Color = require('../../models/Color');
 const getFileUrl = require('../../utils/getFileUrl');
 const clearImageRequest = require('../../utils/clearImageRequest');
 const unlinkAsync = require('../../utils/removeImage');
+const moment = require('moment');
 
 const createProductSchema = Joi.object({
     name: Joi.string().required(),
@@ -66,6 +67,10 @@ const formatProduct = (req, product) => {
         salePrice,
         colors,
         isValid: !!isValid,
+        reviews: product.reviews.map((review) => ({
+            ...review._doc,
+            createdAt: moment().format('DD/MM/YYYY HH:mm'),
+        })),
     };
 };
 
@@ -138,6 +143,14 @@ class ProductController {
             .populate('category')
             .populate('tags')
             .populate('colors')
+            .populate({
+                path: 'reviews',
+                populate: {
+                    path: 'user',
+                    model: 'User',
+                    select: 'name avatar firstName lastName',
+                },
+            })
             .then((product) => {
                 res.status(200).json({
                     product: formatProduct(req, product),

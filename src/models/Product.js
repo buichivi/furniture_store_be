@@ -4,6 +4,15 @@ const slug = require('mongoose-slug-updater');
 
 mongoose.plugin(slug);
 
+const ReviewSchema = new Schema(
+    {
+        user: { type: Schema.Types.ObjectId, ref: 'User' },
+        rating: { type: Number, min: 0, max: 5, default: 0, required: true },
+        comment: { type: String, required: true },
+    },
+    { timestamps: true }
+);
+
 const Product = new Schema(
     {
         name: { type: String, unique: true, required: true },
@@ -27,7 +36,7 @@ const Product = new Schema(
         },
         weight: { type: Number, default: 0 },
         material: { type: String, default: '' },
-        reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }],
+        reviews: [ReviewSchema],
         active: { type: Boolean, default: true },
     },
     { timestamps: true }

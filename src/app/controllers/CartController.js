@@ -26,14 +26,7 @@ class CartController {
                 (item) => item?.product == value?.product
             );
             const color = await Color.findById(value.color);
-            console.log(cart.items);
             if (isExistedProduct) {
-                console.log(
-                    color.stock,
-                    isExistedProduct.quantity,
-                    value.quantity
-                );
-
                 if (color.stock < isExistedProduct.quantity + value.quantity) {
                     return res.status(400).json({
                         error: 'The current number of products is not enough',
@@ -49,7 +42,6 @@ class CartController {
                         : item;
                 });
             } else {
-                console.log(color.stock, value.quantity);
                 if (color.stock < value.quantity) {
                     return res.status(400).json({
                         error: 'The current number of products is not enough',

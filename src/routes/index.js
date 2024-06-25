@@ -9,6 +9,8 @@ const colorRouters = require('./color');
 const cartRouters = require('./cart');
 const promoCodeRouters = require('./promocode');
 const wishlistRouter = require('./wishlist');
+const reviewRouter = require('./review');
+
 const express = require('express');
 const router = express.Router();
 
@@ -24,5 +26,6 @@ router.use('/cart', cartRouters);
 router.use('/promo-code', promoCodeRouters);
 router.use('/orders', orderRouters);
 router.use('/wishlist', wishlistRouter);
+router.use('/reviews', reviewRouter);
 
 module.exports = router;
