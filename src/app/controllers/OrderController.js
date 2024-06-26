@@ -1,4 +1,5 @@
 const Order = require('../../models/Order');
+const User = require('../../models/User');
 const Joi = require('joi');
 const formatCart = require('../../utils/formatCart');
 const PromoCode = require('../../models/PromoCode');
@@ -19,8 +20,11 @@ const orderSchema = Joi.object({
         ward: Joi.object().required(),
         addressLine: Joi.string().required(),
     }).required(),
-    promoCode: Joi.string().optional(),
+    promoCode: Joi.string().optional().allow(''),
     paymentStatus: Joi.string().valid('paid', 'unpaid').default('unpaid'),
+    discount: Joi.number().integer().default(0),
+    shippingFee: Joi.number().integer().default(10),
+    subTotal: Joi.number().integer().default(10),
 });
 
 const editOrderSchema = Joi.object({
@@ -49,29 +53,81 @@ const editOrderSchema = Joi.object({
 class OrderController {
     // [GET] /orders
     async getAllOrders(req, res) {
-        const orders = await Order.find().populate([
-            {
-                path: 'user',
-                model: 'User',
-            },
-            {
-                path: 'items',
-                populate: [
-                    {
-                        path: 'product',
-                        model: 'Product',
-                    },
-                    {
-                        path: 'color',
-                        model: 'Color',
-                    },
-                ],
-            },
-        ]);
+        const user = await User.findById(req.userId);
+        let orders = [];
+        if (user.admin) {
+            orders = await Order.find().populate([
+                {
+                    path: 'user',
+                    model: 'User',
+                },
+                {
+                    path: 'items',
+                    populate: [
+                        {
+                            path: 'product',
+                            model: 'Product',
+                        },
+                        {
+                            path: 'color',
+                            model: 'Color',
+                        },
+                    ],
+                },
+                {
+                    path: 'promoCode',
+                    model: 'PromoCode',
+                },
+            ]);
+        } else {
+            console.log(req.userId);
+            orders = await Order.find({ user: req.userId }).populate([
+                {
+                    path: 'user',
+                    model: 'User',
+                },
+                {
+                    path: 'items',
+                    populate: [
+                        {
+                            path: 'product',
+                            model: 'Product',
+                        },
+                        {
+                            path: 'color',
+                            model: 'Color',
+                        },
+                    ],
+                },
+                {
+                    path: 'promoCode',
+                    model: 'PromoCode',
+                },
+            ]);
+        }
         res.status(200).json({
             orders: orders.map((order) => {
+                const subTotal = order?.items?.reduce(
+                    (acc, item) => acc + item?.itemPrice,
+                    0
+                );
+                let discount = 0;
+                if (order?.promoCode?._id) {
+                    if (order?.promoCode?.type == 'coupon') {
+                        discount = subTotal;
+                    }
+                }
+
                 return {
                     ...order._doc,
+                    items: order.items.map((item) => {
+                        const productImage = getFileUrl(
+                            req,
+                            item?.color?.images[0]
+                        );
+                        return { ...item._doc, productImage };
+                    }),
+                    subTotal,
                     createdAt: moment(order.createdAt).format(
                         'DD/MM/YYYY HH:mm'
                     ),
@@ -103,7 +159,7 @@ class OrderController {
             });
 
             // Increase usage of promo code + 1
-            if (value.promoCode) {
+            if (value?.promoCode) {
                 const promoCode = await PromoCode.findById(value.promoCode);
                 if (!promoCode)
                     return res
@@ -171,6 +227,10 @@ class OrderController {
                     },
                 ],
             },
+            {
+                path: 'promoCode',
+                model: 'PromoCode',
+            },
         ]);
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
@@ -202,7 +262,7 @@ class OrderController {
             const { orderStatus, paymentStatus, ...rest } = value;
             order.shippingAddress = rest;
             order.orderStatus = orderStatus;
-            order.paymentStatus;
+            order.paymentStatus = paymentStatus;
             await order.save();
             res.status(200).json({ message: 'Update order successfully' });
         } catch (err) {

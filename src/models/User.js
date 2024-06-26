@@ -20,6 +20,19 @@ const User = new Schema(
                 addedAt: { type: String },
             },
         ],
+        addresses: [
+            {
+                firstName: { type: String },
+                lastName: { type: String },
+                email: { type: String },
+                phoneNumber: { type: String },
+                city: { type: Object },
+                district: { type: Object },
+                ward: { type: Object },
+                addressLine: { type: String },
+                isDefault: { type: Boolean, default: false },
+            },
+        ],
     },
     { timestamps: true }
 );

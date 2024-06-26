@@ -50,6 +50,9 @@ const OrderSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'PromoCode',
         },
+        discount: { type: Number },
+        shippingFee: { type: Number },
+        subTotal: { type: Number },
     },
     { timestamps: true }
 );

@@ -10,6 +10,7 @@ const cartRouters = require('./cart');
 const promoCodeRouters = require('./promocode');
 const wishlistRouter = require('./wishlist');
 const reviewRouter = require('./review');
+const addressesRouter = require('./addresses');
 
 const express = require('express');
 const router = express.Router();
@@ -27,5 +28,6 @@ router.use('/promo-code', promoCodeRouters);
 router.use('/orders', orderRouters);
 router.use('/wishlist', wishlistRouter);
 router.use('/reviews', reviewRouter);
+router.use('/addresses', addressesRouter);
 
 module.exports = router;
