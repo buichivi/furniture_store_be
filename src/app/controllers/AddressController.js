@@ -45,15 +45,10 @@ class AddressController {
                     ? { ...address._doc, isDefault: true }
                     : { ...address._doc, isDefault: false };
             });
-
             await user.save();
             return res.status(200).json({
                 message: 'Set default address successfully!',
-                addresses: user.addresses.map((address) =>
-                    address._id == addressId
-                        ? { ...address._doc, isDefault: true }
-                        : { ...address._doc, isDefault: false }
-                ),
+                addresses: user.addresses,
             });
         } catch (error) {
             return res.status(400).json({ error: error?.message });
@@ -69,11 +64,10 @@ class AddressController {
                 (add) => add._id == addressId
             );
             if (!existedAddress) throw new Error('Address not found');
-
             const { error, value } = addressSchema.validate(req.body);
             if (error) throw new Error(error.details[0].message);
             user.addresses = user.addresses.map((add) =>
-                add._id == addressId ? { ...value } : add
+                add._id == addressId ? { ...add, ...value } : add
             );
             await user.save();
             return res.status(200).json({
