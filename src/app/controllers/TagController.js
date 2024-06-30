@@ -1,4 +1,5 @@
 const Tag = require('../../models/Tag');
+const Product = require('../../models/Product');
 const moment = require('moment');
 
 class TagController {
@@ -58,6 +59,14 @@ class TagController {
             const id = req.params.id;
             const existedTag = await Tag.findById(id);
             if (!existedTag) throw new Error('Tag not found');
+            const product = await Product.findOne({
+                tags: { $in: [id] },
+            });
+            if (product) {
+                return res.status(400).json({
+                    error: 'Cannot delete category as it is associated with a product.',
+                });
+            }
             await existedTag.deleteOne();
             return res.status(200).json({ message: 'Delete tag successfully' });
         } catch (error) {

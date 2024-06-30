@@ -1,4 +1,5 @@
 const Category = require('../../models/Category');
+const Product = require('../../models/Product');
 const Joi = require('joi');
 const getFileUrl = require('../../utils/getFileUrl');
 const unlinkAsync = require('../../utils/removeImage');
@@ -35,7 +36,7 @@ class CategoryController {
     async createCate(req, res) {
         const { error, value } = addCateSchema.validate(req.body);
         if (error) {
-            if (req.file.path) await unlinkAsync(req.file.path);
+            if (req?.file?.path) await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
         try {
@@ -128,6 +129,13 @@ class CategoryController {
         const cate = await Category.findOne({ _id: req.params.id });
         if (!cate) return res.status(404).json({ error: 'Category not found' });
         try {
+            const product = await Product.findOne({ category: cate._id });
+            if (product) {
+                return res.status(400).json({
+                    error: 'Cannot delete category as it is associated with an product.',
+                });
+            }
+
             await cate.deleteOne();
             if (cate.imageUrl) await unlinkAsync(cate.imageUrl);
             const cateChilds = await Category.find({ parentId: cate._id });

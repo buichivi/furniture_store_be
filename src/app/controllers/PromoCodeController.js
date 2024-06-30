@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const PromoCode = require('../../models/PromoCode');
 const moment = require('moment');
+const Order = require('../../models/Order');
 
 const promoCodeSchema = Joi.object({
     code: Joi.string().required().messages({
@@ -52,7 +53,9 @@ class PromoCodeController {
     // [GET] /
     async getAllPromoCode(req, res) {
         const promoCodes = await PromoCode.find();
-        res.status(200).json({ promoCodes });
+        res.status(200).json({
+            promoCodes,
+        });
     }
 
     // [GET] /:promoCode
@@ -172,6 +175,12 @@ class PromoCodeController {
             return res.status(404).json({ error: 'Promo code is not found' });
         }
         try {
+            const order = await Order.findOne({ promoCode: promoCode?._id });
+            if (order) {
+                throw new Error(
+                    'Cannot delete promo code as it is associated with an order.'
+                );
+            }
             await promoCode.deleteOne();
             res.status(200).json({
                 message: 'Delete promo code successfully!',

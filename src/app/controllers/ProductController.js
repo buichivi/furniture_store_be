@@ -7,6 +7,7 @@ const getFileUrl = require('../../utils/getFileUrl');
 const clearImageRequest = require('../../utils/clearImageRequest');
 const unlinkAsync = require('../../utils/removeImage');
 const moment = require('moment');
+const Order = require('../../models/Order');
 
 const createProductSchema = Joi.object({
     name: Joi.string().required(),
@@ -217,6 +218,14 @@ class ProductController {
         if (!existedProduct)
             return res.status(404).json({ error: 'Product not found' });
         try {
+            const order = await Order.findOne({
+                'items.product': existedProduct._id,
+            });
+            if (order) {
+                throw new Error(
+                    'Cannot delete product as it is associated with an order.'
+                );
+            }
             const colors = existedProduct.colors;
             for (const color of colors) {
                 if (color?.thumb) await unlinkAsync(color.thumb);

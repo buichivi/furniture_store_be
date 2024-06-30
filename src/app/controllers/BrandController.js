@@ -1,4 +1,5 @@
 const Brand = require('../../models/Brand');
+const Product = require('../../models/Product');
 const Joi = require('joi');
 
 const createBrandSchema = Joi.object({
@@ -76,6 +77,13 @@ class BrandController {
     // [DELETE] /brands/:id
     async deleteBrandById(req, res) {
         const brandId = req.params.id;
+        const product = await Product.findOne({ brand: brandId });
+        if (product) {
+            return res.status(400).json({
+                error: 'Cannot delete brand as it is associated with an product.',
+            });
+        }
+
         Brand.findByIdAndDelete(brandId)
             .then(() =>
                 res
