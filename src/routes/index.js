@@ -11,7 +11,8 @@ const promoCodeRouters = require('./promocode');
 const wishlistRouter = require('./wishlist');
 const reviewRouter = require('./review');
 const addressesRouter = require('./addresses');
-const sliderRoute = require('./slider');
+const blogRouter = require('./blog');
+const sliderRouter = require('./slider');
 
 const express = require('express');
 const router = express.Router();
@@ -30,6 +31,7 @@ router.use('/orders', orderRouters);
 router.use('/wishlist', wishlistRouter);
 router.use('/reviews', reviewRouter);
 router.use('/addresses', addressesRouter);
-router.use('/sliders', sliderRoute);
+router.use('/sliders', sliderRouter);
+router.use('/blogs', blogRouter);
 
 module.exports = router;

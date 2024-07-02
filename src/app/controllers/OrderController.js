@@ -128,9 +128,6 @@ class OrderController {
                         return { ...item._doc, productImage };
                     }),
                     subTotal,
-                    createdAt: moment(order.createdAt).format(
-                        'DD/MM/YYYY HH:mm'
-                    ),
                 };
             }),
         });
@@ -245,7 +242,6 @@ class OrderController {
                     );
                     return { ...item._doc, productImage };
                 }),
-                createdAt: moment(order.createdAt).format('DD/MM/YYYY HH:mm'),
             },
         });
     }
