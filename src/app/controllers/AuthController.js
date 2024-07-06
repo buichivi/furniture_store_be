@@ -10,7 +10,6 @@ const registerSchema = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().min(6).max(12).required(),
     phoneNumber: Joi.string().required(),
-    dateOfBirth: Joi.string().allow(''),
     avatar: Joi.any().allow(null),
 });
 
@@ -77,14 +76,7 @@ class AuthController {
             if (req.file) await unlinkAsync(req.file.path);
             return res.status(400).json({ error: error.details[0].message });
         }
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            phoneNumber,
-            dateOfBirth,
-        } = value;
+        const { firstName, lastName, email, password, phoneNumber } = value;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
@@ -98,7 +90,6 @@ class AuthController {
             email,
             password,
             phoneNumber,
-            dateOfBirth,
         });
         newUser.setPassword(password);
         if (req.file) {

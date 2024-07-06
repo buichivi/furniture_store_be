@@ -1,22 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../app/controllers/UserController');
-const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './public/uploads');
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    },
-});
-const upload = multer({ storage });
-// const upload = multer({ dest: 'uploads/' });
+const upload = require('../middleware/file');
+const { verifyToken } = require('../middleware/auth');
 
-console.log(__dirname);
+router.put(
+    '/',
+    verifyToken,
+    upload.single('avatar'),
+    userController.updateInfomation
+);
 
-router.post('/register', upload.single('avatar'), userController.uploadAvatar);
-router.get('/:id', userController.getUserById);
-router.get('/', userController.index);
+router.patch('/', verifyToken, userController.updatePassword);
 
 module.exports = router;

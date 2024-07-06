@@ -10,7 +10,6 @@ const User = new Schema(
         email: { type: String, maxLength: 255, required: true, unique: true },
         password: { type: String, maxLength: 255, required: true },
         phoneNumber: { type: String, maxLength: 10 },
-        dateOfBirth: { type: Date },
         admin: { type: Boolean, default: false },
         salt: { type: String },
         token: { type: String, default: null },
