@@ -3,3 +3,14 @@ GET http://localhost:3000/api/wishlist
 {
     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NjczZTM1OGY0NTE0M2ZiNTUwZTYwZGIiLCJpYXQiOjE3MTg4NzA4ODEsImV4cCI6MTcxODk1NzI4MX0.mZOh-M0RjfAtkpBNPqjAV82PmQJ3cmVbALAxf8rWu_o"
 }
+
+###
+POST http://localhost:3000/api/orders/create-vnpay-url
+Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2Njc5NDUwODQ1OGFlMTZmY2E2MGIwNWYiLCJpYXQiOjE3MjA0NTA4NTgsImV4cCI6MTcyMDUzNzI1OH0.RrsYZB2_LPDxfdt5xvd8wmC9XDAjjjBVj3z7rnIfI3A"
+content-type: application/json
+
+{
+    "orderId": "1280123912023",
+    "amount": "1000",
+    "orderInfo": "Thanh toan hoa don 123"
+}
