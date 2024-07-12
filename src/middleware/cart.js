@@ -19,6 +19,19 @@ const cartMiddleware = async (req, res, next) => {
             } else {
                 cart = new Cart({ user: req.userId });
             }
+        } else {
+            if (cart.items.length == 0) {
+                if (req.cookies.sessionId) {
+                    const sessionCart = await Cart.findOne({
+                        sessionId: req.cookies.sessionId,
+                    });
+                    if (sessionCart) {
+                        cart.items = sessionCart.items;
+                        sessionCart.items = [];
+                        await sessionCart.save();
+                    }
+                }
+            }
         }
     } catch (error) {
         if (!req.cookies?.sessionId) {

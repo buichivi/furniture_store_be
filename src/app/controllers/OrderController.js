@@ -30,10 +30,156 @@ const transpoter = nodemailer.createTransport({
 
 const mailOptions = {
     from: { name: 'Fixtures store', address: process.env.USER },
-    to: 'zronglonz@gmail.com',
-    subject: 'Send test email',
-    text: 'Plain text body',
-    html: '<h1>HELLO WORLD</h1>',
+};
+
+const infoOptions = (to, subject, html) => {
+    return {
+        to,
+        subject,
+        html,
+    };
+};
+
+const orderConfirmContent = (
+    items,
+    subTotal,
+    totalAmount,
+    discount,
+    shippingAddress,
+    orderId
+) => {
+    const productList = items
+        .map((item) => {
+            console.log(item);
+            return `<tr>
+            <td>
+                <div style="width: 100%; display: flex; align-items: center; padding: 8px; gap: 12px">
+                <div style="width: 50%; max-width: 120px; aspect-ratio: 1 / 0.8">
+                    <img src=${item.productImage} alt="" style="width: 100%; object-fit: cover">
+                </div>
+                <span style="flex: 1 1 auto; font-size: 14px">${item.product.name}</span>
+                </div>
+            </td>
+            <td align="center" style="padding: 8px">x${item.quantity}</td>
+            <td align="right" style="padding: 8px">$${item.itemPrice}</td>
+        </tr>`;
+        })
+        .join('');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    </head>
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: content-box;
+        font-family: "Open Sans", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: <weight>;
+        font-style: normal;
+        font-variation-settings:
+            "wdth" 100;
+        }
+        .wrapper {
+        width: 100%;
+        height: 100%;
+        background: #eee;
+        }
+        .container {
+        min-width: 320px;
+        max-width: 640px;
+        background: #fff;
+        padding: 12px 20px;
+        height: auto;
+        margin: 0 auto;
+        }
+        tbody > tr:nth-child(odd) {
+        background: #eeeeee80
+        }
+    </style>
+    <body>
+        <div class="wrapper">
+        <div class="container">
+            <div style="border-bottom: 1px solid #000">
+            <div style="width: 200px; margin: 0 auto; padding: 24px">
+                <img
+                src="https://i.postimg.cc/zBSQ6QcC/logo.png"
+                class=""
+                style="width: 100%; object-fit: cover"
+                />
+            </div>
+            </div>
+            <div>
+            <div style="text-align: center; padding: 24px">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Eo_circle_green_checkmark.svg/800px-Eo_circle_green_checkmark.svg.png" alt="" style="width: 106px">
+            </span>
+            </div>
+            <p style="text-align: center; font-size: 36px; font-weight: 700; color: black">Thank you for placing your order with our store</p>
+            <p  style="text-align: center; padding: 16px; font-weight: 500; color: black">This email is to confirm your recent order. <span style="font-weight: 700">Order ID: ${orderId}</span></p>
+            <table style="width: 100%">
+            <thead>
+                <tr style="background: black; color: white;">
+                <th style="padding: 10px">Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${productList}
+                <tr>
+                <td></td>
+                <td align="right" style="padding: 8px">Subtotal: </td>
+                <td align="right" style="padding: 8px">$${subTotal}</td>
+                </tr>
+                <tr>
+                <td></td>
+                <td align="right" style="padding: 8px">Discount: </td>
+                <td align="right" style="padding: 8px">$${discount}</td>
+                </tr>
+                <tr>
+                <td></td>
+                <td align="right" style="padding: 8px">Shipping: </td>
+                <td align="right" style="padding: 8px">$10</td>
+                </tr>
+                <tr>
+                <td></td>
+                <td align="right" style="padding: 8px; font-weight: 900">Total: </td>
+                <td align="right" style="padding: 8px; font-weight: 900">$${totalAmount}</td>
+                </tr>
+            </tbody>
+            </table>
+            <div style="margin-top: 12px; font-size: 14px">
+            <h3>Shipping address</h3>
+            <div style="color: black">${
+                shippingAddress.addressLine +
+                ', ' +
+                shippingAddress.ward.name +
+                ', ' +
+                shippingAddress.district.name +
+                ', ' +
+                shippingAddress.city.name
+            }</div>
+            </div>
+            <p style="margin-top: 24px; color: black">
+            Please do not hesitate to contact us on if you have any questions.
+            </p>
+            <div style="margin-top: 24px; color: black">
+            <p>Many thanks,</p>
+            <p>Fixtures</p>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+`;
 };
 
 const sendMail = async (transpoter, mailOptions) => {
@@ -250,7 +396,21 @@ class OrderController {
                 items,
             });
             await newOrder.save();
-            await sendMail(transpoter, mailOptions);
+            await sendMail(transpoter, {
+                ...mailOptions,
+                ...infoOptions(
+                    value.shippingAddress.email,
+                    'Thank you for your order',
+                    orderConfirmContent(
+                        cartFormat?.items,
+                        value.subTotal,
+                        value.totalAmount,
+                        value.discount,
+                        value.shippingAddress,
+                        newOrder._id
+                    )
+                ),
+            });
             res.status(201).json({
                 message: 'Order is created!',
                 order: newOrder,
