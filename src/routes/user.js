@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../app/controllers/UserController');
 const upload = require('../middleware/file');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, verifyTokenAndAmin } = require('../middleware/auth');
 
 router.put(
     '/',

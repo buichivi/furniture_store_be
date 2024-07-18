@@ -580,5 +580,148 @@ class OrderController {
             });
         }
     }
+
+    // [GET] /orders/statistics
+    async getStatisticsData(req, res) {
+        const startOfMonth = moment().startOf('month').toDate();
+        const endOfMonth = moment().endOf('month').toDate();
+
+        const orders = await Order.aggregate([
+            {
+                $match: {
+                    orderStatus: 'completed',
+                    updatedAt: {
+                        $gte: startOfMonth,
+                        $lte: endOfMonth,
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: { $dayOfMonth: '$updatedAt' },
+                    totalRevenue: { $sum: '$totalAmount' },
+                },
+            },
+            {
+                $sort: { _id: 1 },
+            },
+        ]);
+
+        // Tạo mảng chứa tất cả các ngày trong tháng
+        const daysInMonth = [];
+        const currentDay = moment(startOfMonth);
+
+        while (
+            currentDay.isBefore(endOfMonth) ||
+            currentDay.isSame(endOfMonth, 'day')
+        ) {
+            daysInMonth.push({
+                date: currentDay.format('DD-MM'),
+                revenue: 0,
+            });
+            currentDay.add(1, 'days');
+        }
+
+        // Kết hợp dữ liệu đơn hàng với mảng ngày
+        const dailyData = daysInMonth.map((day) => {
+            const order = orders.find(
+                (order) => order._id === parseInt(day.date.split('-')[0])
+            );
+            return {
+                day: day.date,
+                revenue: order ? order.totalRevenue : 0,
+            };
+        });
+
+        const revenueData = await Order.aggregate([
+            {
+                $match: {
+                    orderStatus: 'completed',
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: '$updatedAt' },
+                        month: { $month: '$updatedAt' },
+                    },
+                    totalRevenue: { $sum: '$totalAmount' },
+                },
+            },
+            {
+                $sort: { '_id.year': 1, '_id.month': 1 },
+            },
+        ]);
+
+        // Format the data into the desired structure
+        const monthlyData = {};
+        revenueData.forEach((item) => {
+            const { year, month } = item._id;
+            if (!monthlyData[year]) {
+                monthlyData[year] = Array(12).fill(0);
+            }
+            monthlyData[year][month - 1] = item.totalRevenue;
+        });
+
+        const topProducts = await Order.aggregate([
+            { $match: { orderStatus: 'completed' } }, // Chỉ lấy các đơn hàng có trạng thái là 'completed'
+            { $unwind: '$items' }, // Tách mảng items thành các tài liệu riêng lẻ
+            {
+                $group: {
+                    _id: { product: '$items.product', color: '$items.color' },
+                    sold: { $sum: '$items.quantity' },
+                },
+            },
+            { $sort: { sold: -1 } }, // Sắp xếp theo tổng doanh số bán giảm dần
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: '_id.product',
+                    foreignField: '_id',
+                    as: 'productDetails',
+                },
+            },
+            { $unwind: '$productDetails' }, // Tách mảng productDetails
+            {
+                $lookup: {
+                    from: 'colors',
+                    localField: '_id.color',
+                    foreignField: '_id',
+                    as: 'colorDetails',
+                },
+            },
+            { $unwind: '$colorDetails' }, // Tách mảng colorDetails
+            {
+                $project: {
+                    _id: 0,
+                    product: '$productDetails.name',
+                    color: '$colorDetails.name',
+                    images: '$colorDetails.images',
+                    sold: 1,
+                },
+            },
+        ]);
+        const users = await User.find();
+        return res.status(200).json({
+            users: users.map((user) => {
+                user.password = undefined;
+                user.salt = undefined;
+                user.token = undefined;
+                user.addresses = undefined;
+                user.wishlist = undefined;
+                return user;
+            }),
+            orders: await Order.find(),
+            monthlyData,
+            dailyData,
+            topProducts: topProducts.map((item) => {
+                return {
+                    ...item,
+                    productImage: getFileUrl(req, item.images[0]),
+                    images: undefined,
+                };
+            }),
+        });
+    }
 }
 module.exports = new OrderController();
