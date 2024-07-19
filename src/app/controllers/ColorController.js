@@ -11,6 +11,7 @@ const createColor = Joi.object({
     stock: Joi.number().min(0).required(),
     thumb: Joi.any().required(),
     images: Joi.array().required(),
+    model3D: Joi.any().allow(null),
 });
 
 const editColor = Joi.object({
@@ -19,6 +20,8 @@ const editColor = Joi.object({
     existedImages: Joi.any(),
     images: Joi.array().min(0),
     thumb: Joi.any().allow(null),
+    model3D: Joi.any().allow(null),
+    isDeleteModel: Joi.bool().default(false),
 });
 class ColorController {
     // [GET] /:colorId
@@ -32,6 +35,9 @@ class ColorController {
                 ...existedColor._doc,
                 thumb: getFileUrl(req, existedColor.thumb),
                 images: existedColor.images.map((img) => getFileUrl(req, img)),
+                model3D: existedColor?.model3D
+                    ? getFileUrl(req, existedColor.model3D)
+                    : '',
             },
         });
     }
@@ -56,7 +62,8 @@ class ColorController {
             existedProduct.colors = existedProduct.colors.filter(
                 (color) => color != colorId
             );
-            if (existedProduct?.thumb) await unlinkAsync(existedColor.thumb);
+            if (existedColor?.thumb) await unlinkAsync(existedColor.thumb);
+            if (existedColor?.model3D) await unlinkAsync(existedColor.model3D);
             for (const image of existedColor.images) {
                 if (image) await unlinkAsync(image);
             }
@@ -70,42 +77,48 @@ class ColorController {
 
     // [POST] /colors/:slug
     async createColorByProductSlug(req, res) {
-        const slug = req.params.slug;
-        const existedProduct = await Product.findOne({ slug }).populate(
-            'colors'
-        );
-        if (!existedProduct) {
-            await clearImageRequest(req);
-            return res.status(400).json({ message: 'Product not found' });
-        }
-        const { error, value } = createColor.validate({
-            ...req.body,
-            thumb: req.files?.thumb?.length
-                ? req.files?.thumb[0]?.path
-                : undefined,
-            images: req.files?.images?.map((file) => file.path),
-        });
-        if (error) {
-            await clearImageRequest(req);
-            return res.status(400).json({ error: error.details[0].message });
-        }
-        const existedColors = existedProduct.colors.map((color) => color.name);
-
-        for (var color of existedColors) {
-            if (color.toLowerCase() === value.name.toLowerCase()) {
-                await clearImageRequest(req);
-                return res
-                    .status(400)
-                    .json({ error: 'Color name existed for this product' });
-            }
-        }
-
         try {
+            const slug = req.params.slug;
+            const existedProduct = await Product.findOne({ slug }).populate(
+                'colors'
+            );
+            if (!existedProduct) {
+                throw new Error('Product not found');
+            }
+            const { error, value } = createColor.validate({
+                ...req.body,
+                thumb: req.files?.thumb?.length
+                    ? req.files?.thumb[0]?.path
+                    : undefined,
+                images: req.files?.images?.map((file) => file.path),
+                model3D: req.files?.model3D?.length
+                    ? req.files?.model3D[0]?.path
+                    : undefined,
+            });
+            if (error) {
+                throw new Error(error.details[0].message);
+            }
+            const existedColors = existedProduct.colors.map(
+                (color) => color.name
+            );
+
+            for (var color of existedColors) {
+                if (color.toLowerCase() === value.name.toLowerCase()) {
+                    await clearImageRequest(req);
+                    return res
+                        .status(400)
+                        .json({ error: 'Color name existed for this product' });
+                }
+            }
+
             const newColor = new Color({
                 ...value,
                 name: value.name.toLowerCase(),
                 thumb: req.files.thumb[0].path,
                 images: req.files.images.map((file) => file.path),
+                model3D: req.files?.model3D?.length
+                    ? req.files.model3D[0].path
+                    : '',
             });
             existedProduct.colors = [...existedProduct.colors, newColor._id];
             await existedProduct.save();
@@ -115,44 +128,52 @@ class ColorController {
                 .json({ message: 'Created a new color', color: newColor });
         } catch (error) {
             await clearImageRequest(req);
+            if (req?.files?.model3D?.length)
+                await unlinkAsync(req.files.model3D[0].path);
             return res.status(400).json({ error: error?.message });
         }
     }
 
     // [PUT] /colors/:colorId
     async editColorById(req, res) {
-        const colorId = req.params.colorId;
-        const existedColor = await Color.findById(colorId);
-        if (!existedColor) {
-            await clearImageRequest(req);
-            return res.stasus(404).json({ error: 'Color not found' });
-        }
-
-        const { error, value } = editColor.validate({
-            ...req.body,
-            thumb: req.files?.thumb?.length
-                ? req.files?.thumb[0]?.path
-                : undefined,
-            images: req.files?.images,
-        });
-        if (error) {
-            await clearImageRequest(req);
-            return res.status(400).json({ error: error.details[0].message });
-        }
         try {
+            const colorId = req.params.colorId;
+            const existedColor = await Color.findById(colorId);
+            if (!existedColor) {
+                throw new Error('Color not found');
+            }
+
+            const { error, value } = editColor.validate({
+                ...req.body,
+                thumb: req.files?.thumb?.length
+                    ? req.files?.thumb[0]?.path
+                    : undefined,
+                images: req.files?.images,
+                model3D: req.files?.model3D?.length
+                    ? req.files?.model3D[0]?.path
+                    : req.body.model3D,
+            });
+            if (error) throw new Error(error.details[0].message);
+
             const existedImages = JSON.parse(value.existedImages).map((img) =>
                 formatPath(img)
             );
             const newImages =
                 value?.images?.map((image) => formatPath(image.path)) || [];
             const thumb = value?.thumb;
+            const model3D = value?.model3D;
             const clearImageRequest = existedColor.images
                 .map((img) => formatPath(img))
                 .filter((img) => !existedImages.includes(img));
             for (const img of clearImageRequest) {
                 if (img) await unlinkAsync(img);
             }
-            if (thumb) await unlinkAsync(existedColor.thumb);
+            if (thumb && existedColor.thumb)
+                await unlinkAsync(existedColor.thumb);
+            if (model3D && existedColor.model3D)
+                await unlinkAsync(existedColor.model3D);
+            if (value.isDeleteModel) await unlinkAsync(existedColor.model3D);
+
             await existedColor.updateOne(
                 {
                     name: value.name,
@@ -161,6 +182,11 @@ class ColorController {
                         ? formatPath(thumb)
                         : formatPath(existedColor.thumb),
                     images: [...existedImages, ...newImages],
+                    model3D: model3D
+                        ? formatPath(model3D)
+                        : !value.isDeleteModel
+                        ? formatPath(existedColor.model3D)
+                        : '',
                 },
                 { new: true }
             );
@@ -169,6 +195,9 @@ class ColorController {
                 color: existedColor,
             });
         } catch (error) {
+            await clearImageRequest(req);
+            if (req?.files?.model3D?.length)
+                await unlinkAsync(req.files.model3D[0].path);
             res.status(400).json({ error: error?.message });
         }
     }

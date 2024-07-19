@@ -54,6 +54,7 @@ const formatProduct = (req, product) => {
             ...color._doc,
             thumb: getFileUrl(req, color.thumb),
             images: color.images.map((image) => getFileUrl(req, image)),
+            model3D: color?.model3D ? getFileUrl(req, color.model3D) : '',
         };
     });
     const salePrice = Math.floor(

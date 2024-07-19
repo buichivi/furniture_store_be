@@ -30,7 +30,7 @@ const OrderSchema = new Schema(
                 'pending',
                 'failed',
                 'processing',
-                'shipped',
+                'shipping',
                 'delivered',
                 'cancelled',
                 'completed',

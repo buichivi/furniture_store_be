@@ -245,7 +245,7 @@ const editOrderSchema = Joi.object({
             'pending',
             'failed',
             'processing',
-            'shipped',
+            'shipping',
             'delivered',
             'cancelled',
             'completed'
@@ -589,7 +589,10 @@ class OrderController {
         const orders = await Order.aggregate([
             {
                 $match: {
-                    orderStatus: 'completed',
+                    $or: [
+                        { orderStatus: 'completed' },
+                        { paymentStatus: 'paid' },
+                    ],
                     updatedAt: {
                         $gte: startOfMonth,
                         $lte: endOfMonth,
@@ -636,7 +639,10 @@ class OrderController {
         const revenueData = await Order.aggregate([
             {
                 $match: {
-                    orderStatus: 'completed',
+                    $or: [
+                        { orderStatus: 'completed' },
+                        { paymentStatus: 'paid' },
+                    ],
                 },
             },
             {
@@ -664,7 +670,14 @@ class OrderController {
         });
 
         const topProducts = await Order.aggregate([
-            { $match: { orderStatus: 'completed' } }, // Chỉ lấy các đơn hàng có trạng thái là 'completed'
+            {
+                $match: {
+                    $or: [
+                        { orderStatus: 'completed' },
+                        { paymentStatus: 'paid' },
+                    ],
+                },
+            }, // Chỉ lấy các đơn hàng có trạng thái là 'completed'
             { $unwind: '$items' }, // Tách mảng items thành các tài liệu riêng lẻ
             {
                 $group: {
