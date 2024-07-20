@@ -60,6 +60,7 @@ const formatProduct = (req, product) => {
     const salePrice = Math.floor(
         ((100 - product.discount) / 100) * product.price
     );
+    const isNew = moment().diff(moment(product.createdAt), 'days') <= 30;
     return {
         ...product._doc,
         category: {
@@ -73,6 +74,7 @@ const formatProduct = (req, product) => {
             ...review._doc,
             createdAt: moment().format('DD/MM/YYYY HH:mm'),
         })),
+        isNew,
     };
 };
 
