@@ -51,7 +51,6 @@ const orderConfirmContent = (
 ) => {
     const productList = items
         .map((item) => {
-            console.log(item);
             return `<tr>
             <td>
                 <div style="width: 100%; display: flex; align-items: center; padding: 8px; gap: 12px">
@@ -290,7 +289,6 @@ class OrderController {
                 },
             ]);
         }
-        console.log(orders);
         res.status(200).json({
             orders: orders.map((order) => {
                 const subTotal = order?.items?.reduce(

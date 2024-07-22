@@ -27,7 +27,6 @@ class CategoryController {
             ...cate._doc,
             imageUrl: cate.imageUrl ? getFileUrl(req, cate.imageUrl) : '',
         }));
-        console.log(categories);
         return res.status(200).json({
             categories: allCategories,
         });

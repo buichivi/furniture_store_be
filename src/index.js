@@ -24,7 +24,7 @@ const setCorsHeaders = (req, res, next) => {
 app.use(setCorsHeaders, express.static('public'));
 
 // cors configs
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split('.');
 var corsOptionsDelegate = function (req, callback) {
     var corsOptions;
     if (allowedOrigins.indexOf(req.header('Origin')) !== -1) {
@@ -40,5 +40,5 @@ app.use(cors(corsOptionsDelegate));
 app.use('/api', apiRouter);
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on PORT:${PORT}`);
 });
