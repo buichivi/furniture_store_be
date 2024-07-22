@@ -1,11 +1,12 @@
 const express = require('express');
-const port = 3000;
 const app = express();
 const apiRouter = require('./routes');
 const db = require('./config/db');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
+
+const PORT = process.env.PORT || 3000;
 
 // Connect mongoDB
 db.connect();
@@ -38,6 +39,6 @@ app.use(cors(corsOptionsDelegate));
 // Routes init
 app.use('/api', apiRouter);
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
