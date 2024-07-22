@@ -8,6 +8,7 @@ const moment = require('moment');
 const getFileUrl = require('../../utils/getFileUrl');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+const Product = require('../../models/Product');
 dotenv.config();
 
 const vnpayConfig = {
@@ -265,17 +266,8 @@ class OrderController {
                     model: 'User',
                 },
                 {
-                    path: 'items',
-                    populate: [
-                        {
-                            path: 'product',
-                            model: 'Product',
-                        },
-                        {
-                            path: 'color',
-                            model: 'Color',
-                        },
-                    ],
+                    path: 'items.product',
+                    model: 'Product',
                 },
                 {
                     path: 'promoCode',
@@ -283,24 +275,14 @@ class OrderController {
                 },
             ]);
         } else {
-            console.log(req.userId);
             orders = await Order.find({ user: req.userId }).populate([
                 {
                     path: 'user',
                     model: 'User',
                 },
                 {
-                    path: 'items',
-                    populate: [
-                        {
-                            path: 'product',
-                            model: 'Product',
-                        },
-                        {
-                            path: 'color',
-                            model: 'Color',
-                        },
-                    ],
+                    path: 'items.product',
+                    model: 'Product',
                 },
                 {
                     path: 'promoCode',
@@ -308,6 +290,7 @@ class OrderController {
                 },
             ]);
         }
+        console.log(orders);
         res.status(200).json({
             orders: orders.map((order) => {
                 const subTotal = order?.items?.reduce(
@@ -320,14 +303,14 @@ class OrderController {
                         discount = subTotal;
                     }
                 }
-
                 return {
                     ...order._doc,
                     items: order.items.map((item) => {
-                        const productImage = getFileUrl(
-                            req,
-                            item?.color?.images[0]
+                        console.log(item);
+                        const color = item.product.colors.find((color) =>
+                            color._id.equals(item.color)
                         );
+                        const productImage = getFileUrl(req, color?.images[0]);
                         return { ...item._doc, productImage };
                     }),
                     subTotal,
@@ -376,14 +359,17 @@ class OrderController {
 
             // Decrease number of product
             for (let item of cartFormat?.items) {
-                const color = await Color.findById(item.color._id);
+                const product = await Product.findById(item.product._id);
+                const color = product.colors.find((color) =>
+                    color._id.equals(item.color._id)
+                );
                 if (color.stock < item.quantity) {
                     return res.status(400).json({
                         error: `Product '${item.product.name}' is currently out of stock`,
                     });
                 }
                 color.stock -= item.quantity;
-                await color.save();
+                await product.save();
             }
 
             // Empty cart when create order
@@ -429,17 +415,8 @@ class OrderController {
                 model: 'User',
             },
             {
-                path: 'items',
-                populate: [
-                    {
-                        path: 'product',
-                        model: 'Product',
-                    },
-                    {
-                        path: 'color',
-                        model: 'Color',
-                    },
-                ],
+                path: 'items.product',
+                model: 'Product',
             },
             {
                 path: 'promoCode',
@@ -453,10 +430,10 @@ class OrderController {
             order: {
                 ...order._doc,
                 items: order.items.map((item) => {
-                    const productImage = getFileUrl(
-                        req,
-                        item?.color?.images[0]
+                    const color = item.product.colors.find((color) =>
+                        color._id.equals(item.color)
                     );
+                    const productImage = getFileUrl(req, color?.images[0]);
                     return { ...item._doc, productImage };
                 }),
             },
@@ -677,40 +654,90 @@ class OrderController {
                         { paymentStatus: 'paid' },
                     ],
                 },
-            }, // Chỉ lấy các đơn hàng có trạng thái là 'completed'
+            }, // Chỉ lấy các đơn hàng có trạng thái là 'completed' hoặc 'paid'
             { $unwind: '$items' }, // Tách mảng items thành các tài liệu riêng lẻ
             {
                 $group: {
-                    _id: { product: '$items.product', color: '$items.color' },
-                    sold: { $sum: '$items.quantity' },
+                    _id: '$items.product', // Gộp theo product
+                    sold: { $sum: '$items.quantity' }, // Tính tổng số lượng đã bán
                 },
             },
             { $sort: { sold: -1 } }, // Sắp xếp theo tổng doanh số bán giảm dần
             {
                 $lookup: {
                     from: 'products',
-                    localField: '_id.product',
+                    localField: '_id',
                     foreignField: '_id',
                     as: 'productDetails',
                 },
             },
             { $unwind: '$productDetails' }, // Tách mảng productDetails
             {
-                $lookup: {
-                    from: 'colors',
-                    localField: '_id.color',
-                    foreignField: '_id',
-                    as: 'colorDetails',
-                },
-            },
-            { $unwind: '$colorDetails' }, // Tách mảng colorDetails
-            {
                 $project: {
                     _id: 0,
                     product: '$productDetails.name',
-                    color: '$colorDetails.name',
-                    images: '$colorDetails.images',
+                    slug: '$productDetails.slug',
                     sold: 1,
+                    images: {
+                        $arrayElemAt: ['$productDetails.colors.images', 0],
+                    }, // Lấy ảnh đầu tiên từ colors[0].images[0]
+                },
+            },
+        ]);
+
+        const revenueByCategory = await Order.aggregate([
+            {
+                $match: {
+                    $or: [
+                        { orderStatus: 'completed' },
+                        { paymentStatus: 'paid' },
+                    ],
+                },
+            },
+            {
+                $unwind: '$items',
+            },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'items.product',
+                    foreignField: '_id',
+                    as: 'productDetails',
+                },
+            },
+            {
+                $unwind: '$productDetails',
+            },
+            {
+                $group: {
+                    _id: '$productDetails.category',
+                    totalRevenue: {
+                        $sum: {
+                            $multiply: [
+                                '$items.quantity',
+                                '$productDetails.price',
+                            ],
+                        },
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'categoryDetails',
+                },
+            },
+            {
+                $unwind: '$categoryDetails',
+            },
+            {
+                $project: {
+                    _id: 0,
+                    categoryId: '$categoryDetails._id',
+                    categoryName: '$categoryDetails.name',
+                    totalRevenue: 1,
                 },
             },
         ]);
@@ -734,6 +761,7 @@ class OrderController {
                     images: undefined,
                 };
             }),
+            revenueByCategory,
         });
     }
 }

@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const OrderItemSchema = new Schema({
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    color: { type: Schema.Types.ObjectId, ref: 'Color', required: true },
+    color: { type: Schema.Types.ObjectId, required: true },
     quantity: { type: Number, required: true },
     itemPrice: { type: Number, required: true },
 });

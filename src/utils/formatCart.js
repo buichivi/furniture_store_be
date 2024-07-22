@@ -12,28 +12,26 @@ const formatCart = async (req) => {
                     model: 'Category',
                 },
             },
-            {
-                path: 'color',
-                model: 'Color',
-            },
         ],
     });
 
     if (cart) {
         let subTotal = 0;
         const items = cart.items.map((item) => {
-            const cartItem = item;
             const salePrice = Math.floor(
                 ((100 - item.product.discount) / 100) * item.product.price
             );
-            const productImage = getFileUrl(req, cartItem?.color?.images[0]);
+            const color = item.product.colors.find((color) => {
+                return color._id.equals(item.color);
+            });
+            const productImage = getFileUrl(req, color?.images[0]);
             const itemPrice =
                 Math.ceil(
                     (item.product.price * (100 - item.product.discount)) / 100
                 ) * item.quantity;
             subTotal += itemPrice;
             return {
-                ...cartItem._doc,
+                ...item._doc,
                 productImage,
                 itemPrice,
                 product: { ...item.product._doc, salePrice },

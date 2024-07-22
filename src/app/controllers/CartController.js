@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const formatCart = require('../../utils/formatCart');
 const Color = require('../../models/Color');
+const Product = require('../../models/Product');
 
 const cartItemValidate = Joi.object({
     product: Joi.string().required(),
@@ -27,7 +28,10 @@ class CartController {
                     item?.product == value?.product &&
                     item?.color == value?.color
             );
-            const color = await Color.findById(value.color);
+            const product = await Product.findById(value.product);
+            const color = product.colors.find((color) =>
+                color._id.equals(value.color)
+            );
             if (isExistedProduct) {
                 if (color.stock < isExistedProduct.quantity + value.quantity) {
                     return res.status(400).json({
@@ -70,8 +74,13 @@ class CartController {
                 return res
                     .status(400)
                     .json({ error: error.details[0].message });
-            const color = await Color.findById(value.color);
-            const item = cart.items.find((it) => it.product == value.product);
+            const product = await Product.findById(value.product);
+            const color = product.colors.find((color) =>
+                color._id.equals(value.color)
+            );
+            const item = cart.items.find(
+                (item) => item.product == value.product
+            );
             if (item) {
                 if (color.stock < value.quantity) {
                     return res.status(400).json({

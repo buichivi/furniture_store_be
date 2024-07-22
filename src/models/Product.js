@@ -13,6 +13,17 @@ const ReviewSchema = new Schema(
     { timestamps: true }
 );
 
+const ColorSchema = new Schema(
+    {
+        name: { type: String, default: '' },
+        thumb: { type: String, default: '' },
+        stock: { type: Number, min: 0, default: 0 },
+        images: [{ type: String }],
+        model3D: { type: String, default: '' },
+    },
+    { timestamps: true }
+);
+
 const Product = new Schema(
     {
         name: { type: String, unique: true, required: true },
@@ -27,7 +38,8 @@ const Product = new Schema(
             require: true,
         },
         brand: { type: Schema.Types.ObjectId, ref: 'Brand', required: true },
-        colors: [{ type: Schema.Types.ObjectId, ref: 'Color' }],
+        // colors: [{ type: Schema.Types.ObjectId, ref: 'Color' }],
+        colors: [ColorSchema],
         tags: [{ type: Schema.Types.ObjectId, ref: 'Tag' }],
         dimensions: {
             width: { type: Number, default: 0 },
