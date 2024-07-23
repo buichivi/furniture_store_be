@@ -16,29 +16,32 @@ const formatWishlist = async (req) => {
             },
         })
         .exec();
-    const wishlist = user.wishlist.map((item) => {
-        const salePrice = Math.floor(
-            ((100 - item.product.discount) / 100) * item.product.price
-        );
-        const productImage = getFileUrl(
-            req,
-            item?.product?.colors[0]?.images[0]
-        );
-        let isValid = 0;
-        item?.product?.colors.forEach((color) => {
-            isValid += color.stock;
+    if (user) {
+        const wishlist = user.wishlist.map((item) => {
+            const salePrice = Math.floor(
+                ((100 - item.product.discount) / 100) * item.product.price
+            );
+            const productImage = getFileUrl(
+                req,
+                item?.product?.colors[0]?.images[0]
+            );
+            let isValid = 0;
+            item?.product?.colors.forEach((color) => {
+                isValid += color.stock;
+            });
+            return {
+                ...item._doc,
+                product: {
+                    ...item.product._doc,
+                    productImage,
+                    salePrice,
+                    isValid: !!isValid,
+                },
+            };
         });
-        return {
-            ...item._doc,
-            product: {
-                ...item.product._doc,
-                productImage,
-                salePrice,
-                isValid: !!isValid,
-            },
-        };
-    });
-    return wishlist;
+        return wishlist;
+    }
+    return [];
 };
 
 class WishlistController {

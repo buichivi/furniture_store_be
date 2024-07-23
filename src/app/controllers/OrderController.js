@@ -12,10 +12,10 @@ const Product = require('../../models/Product');
 dotenv.config();
 
 const vnpayConfig = {
-    vnp_TmnCode: '0NP1XRTC',
-    vnp_HashSecret: '7WZW1IEMFHF0LEU52VXL3TN5ZULYAH36',
-    vnp_Url: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
-    vnp_ReturnUrl: 'http://localhost:5173/checkout',
+    vnp_TmnCode: process.env.VNP_TMPCODE,
+    vnp_HashSecret: process.env.VNP_HASHSECRET,
+    vnp_Url: process.env.VNP_URL,
+    vnp_ReturnUrl: process.env.VNP_RETURNURL,
 };
 
 const transpoter = nodemailer.createTransport({
@@ -304,12 +304,11 @@ class OrderController {
                 return {
                     ...order._doc,
                     items: order.items.map((item) => {
-                        console.log(item);
                         const color = item.product.colors.find((color) =>
                             color._id.equals(item.color)
                         );
                         const productImage = getFileUrl(req, color?.images[0]);
-                        return { ...item._doc, productImage };
+                        return { ...item._doc, productImage, color };
                     }),
                     subTotal,
                 };
