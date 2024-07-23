@@ -3,7 +3,6 @@ const User = require('../../models/User');
 const Joi = require('joi');
 const formatCart = require('../../utils/formatCart');
 const PromoCode = require('../../models/PromoCode');
-const Color = require('../../models/Color');
 const moment = require('moment');
 const getFileUrl = require('../../utils/getFileUrl');
 const nodemailer = require('nodemailer');

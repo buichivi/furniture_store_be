@@ -9,10 +9,7 @@ const formatWishlist = async (req) => {
             populate: {
                 path: 'product',
                 model: 'Product',
-                populate: [
-                    { path: 'category', model: 'Category' },
-                    { path: 'colors', model: 'Color' },
-                ],
+                populate: [{ path: 'category', model: 'Category' }],
             },
         })
         .exec();
@@ -29,6 +26,9 @@ const formatWishlist = async (req) => {
             item?.product?.colors.forEach((color) => {
                 isValid += color.stock;
             });
+            const color = item.product.colors.find((color) =>
+                color._id.equals(item.color)
+            );
             return {
                 ...item._doc,
                 product: {
@@ -36,6 +36,7 @@ const formatWishlist = async (req) => {
                     productImage,
                     salePrice,
                     isValid: !!isValid,
+                    color,
                 },
             };
         });

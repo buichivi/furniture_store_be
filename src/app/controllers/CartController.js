@@ -1,6 +1,5 @@
 const Joi = require('joi');
 const formatCart = require('../../utils/formatCart');
-const Color = require('../../models/Color');
 const Product = require('../../models/Product');
 
 const cartItemValidate = Joi.object({
