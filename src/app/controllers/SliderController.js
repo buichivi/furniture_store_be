@@ -27,7 +27,7 @@ class SliderController {
             sliders: sliders.map((slider) => {
                 return {
                     ...slider._doc,
-                    image: getFileUrl(req, slider.image),
+                    image: slider.image ? getFileUrl(req, slider.image) : '',
                 };
             }),
         });
@@ -65,10 +65,11 @@ class SliderController {
             if (!existedSlider) throw new Error('Slider not found');
             const { error, value } = editSliderSchema.validate(req.body);
             if (error) throw new Error(error.details[0].message);
-            if (req?.file) await unlinkAsync(existedSlider.image);
+            if (req?.file && existedSlider.image)
+                await unlinkAsync(existedSlider.image);
             await existedSlider.updateOne({
                 ...value,
-                image: req?.file ? req?.file?.path : existedSlider.image,
+                image: req?.file ? req.file?.path : existedSlider.image,
             });
             existedSlider.image = getFileUrl(req, existedSlider.image);
             res.status(200).json({
@@ -76,6 +77,9 @@ class SliderController {
                 slider: {
                     ...existedSlider._doc,
                     ...value,
+                    image: req?.file
+                        ? getFileUrl(req, req.file?.path)
+                        : getFileUrl(req, existedSlider.image),
                 },
             });
         } catch (error) {

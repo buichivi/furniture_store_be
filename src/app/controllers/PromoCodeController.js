@@ -77,7 +77,14 @@ class PromoCodeController {
         }
 
         const currentDate = moment(); // Ngày hiện tại
+        const startDate = moment(existed_promoCode.startDate); // Ngày bắt đầu của mã khuyến mãi
         const endDate = moment(existed_promoCode.endDate); // Ngày hết hạn của mã khuyến mãi
+
+        if (currentDate.isBefore(startDate, 'day')) {
+            return res
+                .status(400)
+                .json({ error: 'This promo code is not yet valid' });
+        }
 
         if (currentDate.isAfter(endDate, 'day')) {
             return res

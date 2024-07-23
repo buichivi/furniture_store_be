@@ -15,14 +15,6 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const setCorsHeaders = (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD');
-    next();
-};
-
-app.use(setCorsHeaders, express.static('public'));
-
 // cors configs
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split('.');
 var corsOptionsDelegate = function (req, callback) {
@@ -35,7 +27,7 @@ var corsOptionsDelegate = function (req, callback) {
     callback(null, corsOptions); // callback expects two parameters: error and options
 };
 app.use(cors(corsOptionsDelegate));
-
+app.use(cors(corsOptionsDelegate), express.static('public'));
 // Routes init
 app.use('/api', apiRouter);
 

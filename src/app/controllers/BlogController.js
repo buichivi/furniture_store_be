@@ -113,7 +113,7 @@ class BlogController {
                 author: req.userId,
             });
             if (error) throw new Error(error.details[0].message);
-            if (req.file) await unlinkAsync(blog.thumb);
+            if (req.file && blog.thumb) await unlinkAsync(blog.thumb);
             await blog.updateOne({ ...value, tags: JSON.parse(value.tags) });
             res.status(200).json({ message: 'Update blog successfully!' });
         } catch (error) {
