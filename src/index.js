@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const https = require('https');
 const app = express();
 const apiRouter = require('./routes');
 const db = require('./config/db');
@@ -26,11 +28,22 @@ var corsOptionsDelegate = function (req, callback) {
     }
     callback(null, corsOptions); // callback expects two parameters: error and options
 };
-app.use(cors(corsOptionsDelegate));
 app.use(cors(corsOptionsDelegate), express.static('public'));
 // Routes init
-app.use('/api', apiRouter);
+app.use('/api', cors(corsOptionsDelegate), apiRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT:${PORT}`);
 });
+
+// https
+//     .createServer(
+//         {
+//             key: fs.readFileSync('src/furniture-store.backend.com+2-key.pem'),
+//             cert: fs.readFileSync('src/furniture-store.backend.com+2.pem'),
+//         },
+//         app
+//     )
+//     .listen(PORT, () => {
+//         console.log(`Server is running on PORT:${PORT}`);
+//     });
