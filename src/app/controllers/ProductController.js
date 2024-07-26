@@ -110,7 +110,7 @@ class ProductController {
         const products = await Product.find()
             .populate('brand')
             .populate('category')
-            .populate('tags');
+            .populate('tags'); // Sắp xếp theo createdAt giảm dần
         res.status(200).json({
             products: products.map((product) => {
                 return formatProduct(req, product);
