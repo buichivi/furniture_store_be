@@ -3,23 +3,19 @@ const getFileUrl = require('../utils/getFileUrl');
 
 const formatCart = async (req) => {
     const cart = await Cart.findById(req.cart._id).populate({
-        path: 'items',
-        populate: [
-            {
-                path: 'product',
-                populate: {
-                    path: 'category',
-                    model: 'Category',
-                },
-            },
-        ],
+        path: 'items.product',
+        populate: {
+            path: 'category',
+            model: 'Category',
+        },
     });
 
     if (cart) {
         let subTotal = 0;
         const items = cart.items.map((item) => {
             const salePrice = Math.floor(
-                ((100 - item.product.discount) / 100) * item.product.price
+                ((100 - (item.product?.discount || 0)) / 100) *
+                    item.product.price
             );
             const color = item.product.colors.find((color) => {
                 return color._id.equals(item.color);
@@ -35,6 +31,7 @@ const formatCart = async (req) => {
                 productImage,
                 itemPrice,
                 product: { ...item.product._doc, salePrice },
+                color,
             };
         });
         return { ...cart._doc, items, subTotal };

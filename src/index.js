@@ -22,12 +22,10 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
 var corsOptionsDelegate = function (req, callback) {
     var corsOptions;
     if (allowedOrigins.indexOf(req.header('Origin')) !== -1) {
-        console.log(req.header('Origin'));
         corsOptions = { origin: true, credentials: true }; // reflect (enable) the requested origin in the CORS response
     } else {
         corsOptions = { origin: false }; // disable CORS for this request
     }
-    console.log(corsOptions);
     callback(null, corsOptions); // callback expects two parameters: error and options
 };
 app.use(cors(corsOptionsDelegate), express.static('public'));

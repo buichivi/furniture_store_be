@@ -52,10 +52,28 @@ const promoCodeSchema = Joi.object({
 class PromoCodeController {
     // [GET] /
     async getAllPromoCode(req, res) {
-        const promoCodes = await PromoCode.find();
-        res.status(200).json({
-            promoCodes,
-        });
+        try {
+            // Lấy danh sách tất cả các mã khuyến mãi
+            let promoCodes = await PromoCode.find();
+
+            // Ngày hiện tại
+            const currentDate = new Date();
+
+            // Kiểm tra và cập nhật thuộc tính active
+            for (let promoCode of promoCodes) {
+                if (new Date(promoCode.endDate) < currentDate) {
+                    promoCode.active = false;
+                    // Bạn có thể sử dụng save để lưu thay đổi vào DB nếu cần
+                    await promoCode.save();
+                }
+            }
+            // Trả về danh sách mã khuyến mãi đã cập nhật
+            res.status(200).json({
+                promoCodes,
+            });
+        } catch (error) {
+            res.status(500).json({ message: 'Something went wrong', error });
+        }
     }
 
     // [GET] /:promoCode

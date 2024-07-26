@@ -88,10 +88,18 @@ const formatProduct = (req, product) => {
         salePrice,
         colors,
         isValid: !!isValid,
-        reviews: product.reviews.map((review) => ({
-            ...review._doc,
-            createdAt: moment().format('DD/MM/YYYY HH:mm'),
-        })),
+        reviews: product.reviews.map((review) => {
+            return {
+                ...review._doc,
+                user: {
+                    ...review.user._doc,
+                    avatar: review.user.avatar
+                        ? getFileUrl(req, review.user.avatar)
+                        : '',
+                },
+                createdAt: moment().format('DD/MM/YYYY HH:mm'),
+            };
+        }),
         isNew,
     };
 };
