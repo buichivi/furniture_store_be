@@ -61,7 +61,10 @@ class PromoCodeController {
 
             // Kiểm tra và cập nhật thuộc tính active
             for (let promoCode of promoCodes) {
-                if (new Date(promoCode.endDate) < currentDate) {
+                if (
+                    new Date(promoCode.endDate) < currentDate ||
+                    promoCode.currentUses == promoCode.maxUsage
+                ) {
                     promoCode.active = false;
                     // Bạn có thể sử dụng save để lưu thay đổi vào DB nếu cần
                     await promoCode.save();

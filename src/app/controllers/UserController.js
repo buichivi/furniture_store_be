@@ -31,6 +31,8 @@ class UserController {
             const user = await User.findById(req.userId);
             if (!user.validPassword(value.password))
                 throw new Error('Password is incorrect');
+            const existedUser = await User.findOne({ email: value.email });
+            if (existedUser) throw new Error('This email already exists');
             delete value.password;
             await user.updateOne({ ...value });
             if (req.file && user.avatar) await unlinkAsync(user.avatar);
