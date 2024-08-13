@@ -12,6 +12,7 @@ const reviewRouter = require('./review');
 const addressesRouter = require('./addresses');
 const blogRouter = require('./blog');
 const sliderRouter = require('./slider');
+const roomRouter = require('./rooms');
 
 const express = require('express');
 const router = express.Router();
@@ -31,5 +32,6 @@ router.use('/reviews', reviewRouter);
 router.use('/addresses', addressesRouter);
 router.use('/sliders', sliderRouter);
 router.use('/blogs', blogRouter);
+router.use('/rooms', roomRouter);
 
 module.exports = router;
