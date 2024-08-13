@@ -1,3 +1,4 @@
+
 # Furniture Store - Backend
 
 This repository contains the backend API for the Furniture Store application, handling server-side logic, database interactions, and payment processing.
@@ -19,20 +20,16 @@ This repository contains the backend API for the Furniture Store application, ha
 
 ## Installation
 
-1. Clone the repository:
+### Node.js Version 
+Ensure you have Node.js version **18.x** or higher installed on your machine.
 
-```bash
-git clone https://github.com/buichivi/furniture_store_be.git
-cd furniture_store_be
-```
-
-2. Install dependencies:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+2. Set up environment variables:
 
 ```plaintext SECRET_KEY=d4037ecd42bf3aeb246dbefa88e691b208c0d8eb50943b4cd995e6ebd6ac1ec6a62bc45cac2e7059fa22d12c5c1982d501147367ac2dbea4c44e7d433d8c2a39
 USER=<Your email>
@@ -46,7 +43,7 @@ VNP_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 VNP_RETURNURL=https://fixtures-store.netlify.app/checkout
 ```
 
-4. Start the server:
+3. Start the server:
 
 ```bash
 npm start
